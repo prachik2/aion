@@ -2,6 +2,7 @@ package org.aion.db.impl.lmdb;
 
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.db.impl.AbstractDB;
+import org.lmdbjava.Cursor;
 import org.lmdbjava.Dbi;
 import org.lmdbjava.Env;
 import org.lmdbjava.Txn;
@@ -10,12 +11,12 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import static java.nio.ByteBuffer.allocateDirect;
 import static org.lmdbjava.DbiFlags.MDB_CREATE;
 import static org.lmdbjava.Env.create;
+import static org.lmdbjava.GetOp.MDB_SET;
 
 public class LMDBWrapper extends AbstractDB {
 
@@ -86,31 +87,6 @@ public class LMDBWrapper extends AbstractDB {
             // ensuring the db is null after close was called
             db = null;
         }
-    }
-
-    @Override
-    public boolean commit() {
-        return false;
-    }
-
-    @Override
-    public void compact() {
-
-    }
-
-    @Override
-    public void drop() {
-
-    }
-
-    @Override
-    public Optional<String> getName() {
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<String> getPath() {
-        return Optional.empty();
     }
 
     @Override
@@ -206,17 +182,66 @@ public class LMDBWrapper extends AbstractDB {
 
     @Override
     public void putBatch(Map<byte[], byte[]> inputMap) {
+        check(inputMap.keySet());
+        check();
 
+        try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            final Cursor<ByteBuffer> c = db.openCursor(txn);
+            for (Map.Entry<byte[], byte[]> e : inputMap.entrySet()) {
+                byte[] k = e.getKey();
+                byte[] v = e.getValue();
+
+                if (v == null) {
+                    final ByteBuffer key = allocateDirect(e.getKey().length).put(k).flip();
+                    if (c.get(key, MDB_SET)) {
+                        c.delete();
+                    }
+                } else {
+                    c.put(allocateDirect(e.getKey().length).put(k).flip(), allocateDirect(e.getKey().length).put(v).flip());
+                }
+            }
+
+            c.close();
+            txn.commit();
+        } catch (Throwable e) {
+            LOG.error("Unable to close putBatch object in " + this.toString() + ".", e.toString());
+        }
     }
 
+    private Cursor<ByteBuffer> cursor = null;
     @Override
     public void putToBatch(byte[] key, byte[] value) {
+        check(key);
+        check();
 
+        try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            if (cursor == null) {
+                cursor = db.openCursor(txn);
+            }
+
+            if (value == null) {
+                final ByteBuffer k = allocateDirect(key.length).put(key).flip();
+                if (cursor.get(k, MDB_SET)) {
+                    cursor.delete();
+                }
+            } else {
+                cursor.put(allocateDirect(key.length).put(key).flip(), allocateDirect(value.length).put(value).flip());
+            }
+        }  catch (Throwable e) {
+            LOG.error("Unable to close putToBatch in " + this.toString() + ".", e.toString());
+        }
     }
 
     @Override
     public void commitBatch() {
-
+        if (cursor != null) {
+            try (Txn<ByteBuffer> txn = env.txnWrite()) {
+                cursor.close();
+                txn.commit();
+            }  catch (Throwable e) {
+                LOG.error("Unable to close commitBatch in " + this.toString() + ".", e.toString());
+            }
+        }
     }
 
     @Override

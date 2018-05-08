@@ -20,6 +20,14 @@
  *******************************************************************************/
 package org.aion.mcf.db;
 
+import static org.aion.base.util.ByteArrayWrapper.wrap;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import org.aion.base.db.IByteArrayKeyValueDatabase;
 import org.aion.base.db.IContractDetails;
 import org.aion.base.db.IRepositoryConfig;
@@ -29,10 +37,6 @@ import org.aion.base.type.ITransaction;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.mcf.types.AbstractBlock;
 import org.aion.mcf.vm.types.DataWord;
-
-import java.util.*;
-
-import static org.aion.base.util.ByteArrayWrapper.wrap;
 
 // import org.aion.mcf.trie.JournalPruneDataSource;
 
@@ -104,7 +108,7 @@ public class DetailsDataStore<BLK extends AbstractBlock<BH, ? extends ITransacti
         ByteArrayWrapper wrappedKey = wrap(key.toBytes());
 
         // Put into cache.
-        byte[] rawDetails = contractDetails == null ? null : contractDetails.getEncoded();
+        byte[] rawDetails = contractDetails.getEncoded();
         detailsSrc.put(key.toBytes(), rawDetails);
 
         contractDetails.syncStorage();

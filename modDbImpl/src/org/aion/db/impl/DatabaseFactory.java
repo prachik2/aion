@@ -36,6 +36,7 @@ import org.aion.db.generic.TimedDatabase;
 import org.aion.db.impl.h2.H2MVMap;
 import org.aion.db.impl.leveldb.LevelDB;
 import org.aion.db.impl.leveldb.LevelDBConstants;
+import org.aion.db.impl.lmdb.LMDBWrapper;
 import org.aion.db.impl.mockdb.MockDB;
 import org.aion.db.impl.rocksdb.RocksDBConstants;
 import org.aion.db.impl.rocksdb.RocksDBWrapper;
@@ -201,6 +202,9 @@ public abstract class DatabaseFactory {
             }
             case H2: {
                 return new H2MVMap(dbName, dbPath, enableDbCache, enableDbCompression);
+            }
+            case LMDB: {
+                return new LMDBWrapper(dbName, dbPath, enableDbCache, enableDbCompression);
             }
             default:
                 break;

@@ -1,27 +1,30 @@
 package org.aion.db.impl.lmdb;
 
-import org.aion.base.util.ByteArrayWrapper;
-import org.aion.db.impl.AbstractDB;
-import org.lmdbjava.Cursor;
-import org.lmdbjava.Dbi;
-import org.lmdbjava.Env;
-import org.lmdbjava.Txn;
-
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
 import static java.nio.ByteBuffer.allocateDirect;
 import static org.lmdbjava.DbiFlags.MDB_CREATE;
 import static org.lmdbjava.Env.create;
 import static org.lmdbjava.GetOp.MDB_SET;
 
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import org.aion.base.util.ByteArrayWrapper;
+import org.aion.db.impl.AbstractDB;
+import org.lmdbjava.Cursor;
+import org.lmdbjava.CursorIterator;
+import org.lmdbjava.Dbi;
+import org.lmdbjava.Env;
+import org.lmdbjava.Txn;
+
 public class LMDBWrapper extends AbstractDB {
 
     private Dbi<ByteBuffer> db;
     private Env<ByteBuffer> env;
+
+    static int maxValueSize = 16 * 1024 * 1024;
 
     public LMDBWrapper(String name, String path, boolean enableCache, boolean enableCompression) {
         super(name, path, enableCache, enableCompression);
@@ -49,6 +52,20 @@ public class LMDBWrapper extends AbstractDB {
                 LOG.error("Failed to initialize the database storage for " + this.toString() + ".");
                 return false;
             }
+        }
+
+        if (!f.exists()) {
+            LOG.info("creating directory: {}" + f.getName());
+
+            try{
+                f.mkdir();
+            }
+            catch(SecurityException se){
+                LOG.error("Failed to initialize the database storage for " + se);
+                return false;
+            }
+
+            LOG.info("folder {} created", f.getName());
         }
 
         env = create().setMapSize(10_485_760).setMaxDbs(1).open(f);
@@ -91,28 +108,46 @@ public class LMDBWrapper extends AbstractDB {
 
     @Override
     public boolean isOpen() {
-        return false;
+        return db != null;
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        return !isOpen();
     }
 
-    @Override
-    public boolean isLocked() {
-        return false;
-    }
+//    @Override
+//    public boolean isLocked() {
+//        return false;
+//    }
 
     @Override
     public boolean commitCache(Map<ByteArrayWrapper, byte[]> cache) {
+        check();
+
+        try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            final Cursor<ByteBuffer> c = db.openCursor(txn);
+            for (Map.Entry<ByteArrayWrapper, byte[]> e : cache.entrySet()) {
+                if (e.getValue() == null) {
+                    final ByteBuffer key = allocateDirect(e.getKey().getData().length).put(e.getKey().getData()).flip();
+                    if (c.get(key, MDB_SET)) {
+                        c.delete();
+                    }
+                } else {
+                    c.put(allocateDirect(e.getKey().getData().length).put(e.getKey().getData()).flip(), allocateDirect(e.getKey().getData().length).put(e.getValue()).flip());
+                }
+            }
+
+            c.close();
+            txn.commit();
+            return true;
+        } catch (Throwable e) {
+            LOG.error("Unable to close commitCache object in " + this.toString() + ".", e.toString());
+        }
+
         return false;
     }
 
-    @Override
-    public boolean isAutoCommitEnabled() {
-        return false;
-    }
 
     @Override
     public boolean isPersistent() {
@@ -121,35 +156,88 @@ public class LMDBWrapper extends AbstractDB {
 
     @Override
     public boolean isCreatedOnDisk() {
-        return false;
+        return new File(path).exists();
     }
+
+//    @Override
+//    public boolean isCreatedOnDisk() {
+//        // working heuristic for Ubuntu: both the LOCK and LOG files should get created on creation
+//        // TODO: implement a platform independent way to do this
+//        return new File(path, "LOCK").exists() && new File(path, "LOG").exists();
+//    }
 
     @Override
     public long approximateSize() {
-        return 0;
+        check();
+
+        long count = 0;
+
+        File[] files = (new File(path)).listFiles();
+
+        if (files != null) {
+            for (File f : files) {
+                if (f.isFile()) {
+                    count += f.length();
+                }
+            }
+        } else {
+            count = -1L;
+        }
+
+        return count;
     }
 
     @Override
     public boolean isEmpty() {
-        return false;
+        check();
+
+        try (CursorIterator<ByteBuffer> it = db.iterate(env.txnRead())) {
+            return !it.hasNext();
+        } catch (Throwable e) {
+            LOG.error("isEmpty method error in " + this.toString() + ".", e.toString());
+        }
+
+        return true;
     }
 
     @Override
     public Set<byte[]> keys() {
-        return null;
+        Set<byte[]> rtn = new HashSet<>();
+
+        try (final Txn<ByteBuffer> txn = env.txnRead()) {
+            final Cursor<ByteBuffer> c = db.openCursor(txn);
+
+            while (c.next()) {
+                byte[] arr = new byte[c.key().remaining()];
+                c.key().get(arr);
+                rtn.add(arr);
+            }
+        } catch (Throwable e) {
+            LOG.error("getKeys throw errors in " + this.toString() + ".", e.toString());
+        }
+
+        return rtn;
     }
 
     @Override
     protected byte[] getInternal(byte[] k) {
-        ByteBuffer value;
+        ByteBuffer value = null;
         ByteBuffer key = allocateDirect(env.getMaxKeySize());
         key.put(k).flip();
 
         try (Txn<ByteBuffer> rtx = env.txnRead()) {
             value = db.get(rtx, key);
+        } catch (Throwable e) {
+            LOG.error("getInternal throw an error " + this.toString() + ".", e.toString());
         }
 
-        return value.array();
+        if (value != null) {
+            byte[] arr = new byte[value.remaining()];
+            value.get(arr);
+            return arr;
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -163,7 +251,7 @@ public class LMDBWrapper extends AbstractDB {
         if (v == null) {
             db.delete(key);
         } else {
-            final ByteBuffer val = allocateDirect(700);
+            final ByteBuffer val = allocateDirect(maxValueSize);
             val.put(v).flip();
             db.put(key, val);
         }
@@ -227,6 +315,10 @@ public class LMDBWrapper extends AbstractDB {
             } else {
                 cursor.put(allocateDirect(key.length).put(key).flip(), allocateDirect(value.length).put(value).flip());
             }
+
+            //TODO: Check need to call close or not.
+            cursor.close();
+
         }  catch (Throwable e) {
             LOG.error("Unable to close putToBatch in " + this.toString() + ".", e.toString());
         }
@@ -246,6 +338,28 @@ public class LMDBWrapper extends AbstractDB {
 
     @Override
     public void deleteBatch(Collection<byte[]> keys) {
+        check(keys);
 
+        check();
+
+        try (Txn<ByteBuffer> txn = env.txnWrite()) {
+            if (cursor == null) {
+                cursor = db.openCursor(txn);
+            }
+
+            // add delete operations to batch
+            // TODO: Considering the parallelstream delete
+            for (byte[] key : keys) {
+                final ByteBuffer k = allocateDirect(key.length).put(key).flip();
+                if (cursor.get(k, MDB_SET)) {
+                    cursor.delete();
+                }
+            }
+
+            //TODO: Check need to call close or not.
+            cursor.close();
+        }  catch (Throwable e) {
+            LOG.error("DeleteBatch throws in " + this.toString() + ".", e.toString());
+        }
     }
 }

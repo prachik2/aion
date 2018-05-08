@@ -1,20 +1,28 @@
 package org.aion.zero.impl.sync;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.math.BigInteger;
+import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.aion.crypto.ECKey;
 import org.aion.crypto.ECKeyFac;
 import org.aion.crypto.HashUtil;
-import org.aion.p2p.*;
+import org.aion.p2p.Handler;
+import org.aion.p2p.INode;
+import org.aion.p2p.INodeMgr;
+import org.aion.p2p.IP2pMgr;
+import org.aion.p2p.Msg;
 import org.aion.zero.impl.StandaloneBlockchain;
 import org.aion.zero.impl.sync.handler.BlockPropagationHandler;
 import org.aion.zero.impl.types.AionBlock;
 import org.junit.Test;
-
-import java.math.BigInteger;
-import java.nio.channels.SocketChannel;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * Unit tests for block propagation
@@ -99,7 +107,6 @@ public class BlockPropagationTest {
             return map;
         }
 
-        @Override
         public INodeMgr getNodeMgr() {
             return null;
         }
@@ -125,6 +132,11 @@ public class BlockPropagationTest {
         }
 
         @Override
+        public void closeSocket(SocketChannel _sc, String _reason) {
+
+        }
+
+        @Override
         public void errCheck(int nodeIdHashcode, String _displayId) {
 
         }
@@ -144,7 +156,6 @@ public class BlockPropagationTest {
 
         }
 
-        @Override
         public void dropActive(Integer hash) {
         }
 
@@ -153,7 +164,6 @@ public class BlockPropagationTest {
             return false;
         }
 
-        @Override
         public void closeSocket(SocketChannel socket) {
             // do nothing
         }

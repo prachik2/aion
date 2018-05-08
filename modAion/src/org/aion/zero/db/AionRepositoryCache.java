@@ -78,7 +78,7 @@ public class AionRepositoryCache extends AbstractRepositoryCache<IBlockStoreBase
                 IContractDetails<DataWord> ctd = entry.getValue();
                 // TODO: this functionality will be improved with the switch to a
                 // different ContractDetails implementation
-                if (ctd != null && ctd instanceof ContractDetailsCacheImpl) {
+                if (ctd instanceof ContractDetailsCacheImpl) {
                     ContractDetailsCacheImpl contractDetailsCache = (ContractDetailsCacheImpl) ctd;
                     contractDetailsCache.commit();
 

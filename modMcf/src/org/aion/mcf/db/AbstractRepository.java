@@ -21,6 +21,15 @@
 
 package org.aion.mcf.db;
 
+import static org.aion.db.impl.DatabaseFactory.Props;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.aion.base.db.IByteArrayKeyValueDatabase;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryConfig;
@@ -36,16 +45,6 @@ import org.aion.mcf.trie.Trie;
 import org.aion.mcf.types.AbstractBlock;
 import org.aion.mcf.vm.types.DataWord;
 import org.slf4j.Logger;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static org.aion.db.impl.DatabaseFactory.Props;
 
 //import org.aion.dbmgr.exception.DriverManagerNoSuitableDriverRegisteredException;
 // import org.aion.mcf.trie.JournalPruneDataSource;
@@ -261,13 +260,6 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
 
         // open the database connection
         db.open();
-
-        // check object status
-        if (db == null) {
-            LOG.error("Database <{}> connection could not be established for <{}>.",
-                      info.getProperty(Props.DB_TYPE),
-                      info.getProperty(Props.DB_NAME));
-        }
 
         // check persistence status
         if (!db.isCreatedOnDisk()) {

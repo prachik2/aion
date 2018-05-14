@@ -107,10 +107,6 @@ public class BlockPropagationTest {
             return map;
         }
 
-        public INodeMgr getNodeMgr() {
-            return null;
-        }
-
         @Override
         public void shutdown() {
 
@@ -152,20 +148,23 @@ public class BlockPropagationTest {
         }
 
         @Override
-        public void send(int _id, Msg _msg) {
+        public void send(int _id, String s, Msg _msg) {
 
         }
 
-        public void dropActive(Integer hash) {
-        }
 
         @Override
         public boolean isShowLog() {
             return false;
         }
 
-        public void closeSocket(SocketChannel socket) {
-            // do nothing
+        @Override
+        public void closeSocket(SocketChannel _sc, String _reason) {
+        }
+
+        @Override
+        public int getSelfIdHash() {
+            return 0;
         }
     }
 
@@ -200,7 +199,7 @@ public class BlockPropagationTest {
 
         P2pMock p2pMock = new P2pMock(node) {
             @Override
-            public void send(int _nodeId, Msg _msg) {
+            public void send(int _nodeId, String s, Msg _msg) {
                 throw new RuntimeException("should not have called send");
             }
         };
@@ -245,7 +244,7 @@ public class BlockPropagationTest {
         AtomicInteger times = new AtomicInteger();
         P2pMock p2pMock = new P2pMock(node) {
             @Override
-            public void send(int _nodeId, Msg _msg) {
+            public void send(int _nodeId, String s, Msg _msg) {
                 if (_nodeId != receiverMock.getIdHash())
                     throw new RuntimeException("should only send to receiver");
                 times.getAndIncrement();
@@ -300,7 +299,7 @@ public class BlockPropagationTest {
         AtomicInteger times = new AtomicInteger();
         P2pMock p2pMock = new P2pMock(node) {
             @Override
-            public void send(int _nodeId, Msg _msg) {
+            public void send(int _nodeId, String s, Msg _msg) {
                 if (_nodeId != receiverMock.getIdHash())
                     throw new RuntimeException("should only send to receiver");
                 times.getAndIncrement();
@@ -348,7 +347,7 @@ public class BlockPropagationTest {
         AtomicInteger sendCount = new AtomicInteger();
         P2pMock p2pMock = new P2pMock(node) {
             @Override
-            public void send(int _nodeId, Msg _msg) {
+            public void send(int _nodeId, String s, Msg _msg) {
                 sendCount.getAndIncrement();
             }
         };

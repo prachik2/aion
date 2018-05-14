@@ -50,6 +50,7 @@ import org.aion.zero.impl.blockchain.ChainConfiguration;
 import org.aion.zero.impl.config.CfgAion;
 import org.aion.zero.impl.core.IAionBlockchain;
 import org.aion.zero.impl.db.AionRepositoryImpl;
+import org.aion.zero.impl.db.RecoveryUtils;
 import org.aion.zero.impl.pow.AionPoW;
 import org.aion.zero.impl.sync.SyncMgr;
 import org.aion.zero.impl.sync.handler.*;
@@ -137,10 +138,12 @@ public class AionHub {
         this.startingBlock = this.blockchain.getBestBlock();
         if (!cfg.getConsensus().isSeed()) {
             this.mempool.updateBest();
-        }
 
-        if (cfg.getTx().getPoolBackup()) {
-            this.mempool.loadPendingTx();
+            if (cfg.getTx().getPoolBackup()) {
+                this.mempool.loadPendingTx();
+            }
+        } else {
+            LOG.info("Seed node mode enabled!");
         }
 
 		String reportsFolder = "";
@@ -160,7 +163,7 @@ public class AionHub {
 		this.p2pMgr = new P2pMgr(this.cfg.getNet().getId(), Version.KERNEL_VERSION, this.cfg.getId(), cfgNetP2p.getIp(),
 				cfgNetP2p.getPort(), this.cfg.getNet().getNodes(), cfgNetP2p.getDiscover(), cfgNetP2p.getMaxTempNodes(),
 				cfgNetP2p.getMaxActiveNodes(), cfgNetP2p.getShowStatus(), cfgNetP2p.getShowLog(),
-				cfgNetP2p.getBootlistSyncOnly(), false, "", cfgNetP2p.getErrorTolerance());
+				cfgNetP2p.inClusterNodeMode(), cfgNetP2p.getErrorTolerance());
 
 		this.syncMgr = SyncMgr.inst();
 		this.syncMgr.init(this.p2pMgr, this.eventMgr, this.cfg.getSync().getBlocksQueueMax(),
@@ -168,10 +171,12 @@ public class AionHub {
 
 		ChainConfiguration chainConfig = new ChainConfiguration();
 		this.propHandler = new BlockPropagationHandler(1024, this.blockchain, this.p2pMgr,
-				chainConfig.createBlockHeaderValidator(), this.cfg.getNet().getP2p().isSyncOnlyNode());
+				chainConfig.createBlockHeaderValidator(), this.cfg.getNet().getP2p().inSyncOnlyMode());
 
 		registerCallback();
 		this.p2pMgr.run();
+
+        ((AionPendingStateImpl)this.mempool).setP2pMgr(this.p2pMgr);
 
 		this.pow = new AionPoW();
 		this.pow.init(blockchain, mempool, eventMgr);
@@ -186,11 +191,11 @@ public class AionHub {
         List<Handler> cbs = new ArrayList<>();
         cbs.add(new ReqStatusHandler(syncLog, this.blockchain, this.p2pMgr, cfg.getGenesis().getHash()));
         cbs.add(new ResStatusHandler(syncLog, this.p2pMgr, this.syncMgr));
-        cbs.add(new ReqBlocksHeadersHandler(syncLog, this.blockchain, this.p2pMgr, this.cfg.getNet().getP2p().isSyncOnlyNode()));
+        cbs.add(new ReqBlocksHeadersHandler(syncLog, this.blockchain, this.p2pMgr, this.cfg.getNet().getP2p().inSyncOnlyMode()));
         cbs.add(new ResBlocksHeadersHandler(syncLog, this.syncMgr, this.p2pMgr));
-        cbs.add(new ReqBlocksBodiesHandler(syncLog, this.blockchain, this.p2pMgr, this.cfg.getNet().getP2p().isSyncOnlyNode()));
+        cbs.add(new ReqBlocksBodiesHandler(syncLog, this.blockchain, this.p2pMgr, this.cfg.getNet().getP2p().inSyncOnlyMode()));
         cbs.add(new ResBlocksBodiesHandler(syncLog, this.syncMgr, this.p2pMgr));
-        cbs.add(new BroadcastTxHandler(syncLog, this.mempool, this.p2pMgr, this.cfg.getNet().getP2p().isSyncOnlyNode()));
+        cbs.add(new BroadcastTxHandler(syncLog, this.mempool, this.p2pMgr, this.cfg.getNet().getP2p().inSyncOnlyMode()));
         cbs.add(new BroadcastNewBlockHandler(syncLog, this.propHandler, this.p2pMgr));
         this.p2pMgr.register(cbs);
     }
@@ -252,6 +257,7 @@ public class AionHub {
 
     private void loadBlockchain() {
 
+        // function repurposed for integrity checks since previously not implemented
         this.repository.getBlockStore().load();
 
         AionBlock bestBlock = this.repository.getBlockStore().getBestBlock();
@@ -269,7 +275,18 @@ public class AionHub {
             long bestBlockNumber = bestBlock.getNumber();
             byte[] bestBlockRoot = bestBlock.getStateRoot();
 
-            recovered = this.blockchain.recoverWorldState(this.repository, bestBlockNumber);
+            recovered = this.blockchain.recoverWorldState(this.repository, bestBlock);
+
+            if (!this.repository.isValidRoot(bestBlock.getStateRoot())) {
+                // reverting back one block
+                LOG.info("Rebuild state FAILED. Reverting to previous block.");
+
+                long blockNumber = bestBlock.getNumber() - 1;
+                RecoveryUtils.Status status = RecoveryUtils.revertTo(this.blockchain, blockNumber);
+
+                recovered = (status == RecoveryUtils.Status.SUCCESS) && this.repository
+                        .isValidRoot(this.repository.getBlockStore().getChainBlockByNumber(blockNumber).getStateRoot());
+            }
 
             if (recovered) {
                 bestBlock = this.repository.getBlockStore().getBestBlock();
@@ -343,17 +360,39 @@ public class AionHub {
         } else {
 
             blockchain.setBestBlock(bestBlock);
-            BigInteger totalDifficulty = this.repository.getBlockStore().getTotalDifficulty();
-            blockchain.setTotalDifficulty(totalDifficulty);
+            blockchain.setTotalDifficulty(this.repository.getBlockStore().getTotalDifficulty());
             LOG.info("loaded block <num={}, root={}>", blockchain.getBestBlock().getNumber(),
                     LogUtil.toHexF8(blockchain.getBestBlock().getStateRoot()));
+        }
+
+        byte[] genesisHash = cfg.getGenesis().getHash();
+        byte[] databaseGenHash = blockchain.getBlockByNumber(0) == null ? null : blockchain.getBlockByNumber(0).getHash();
+
+        // this indicates that DB and genesis are inconsistent
+        if (genesisHash == null || databaseGenHash == null || (!Arrays.equals(genesisHash, databaseGenHash))) {
+            if (genesisHash == null) {
+                LOG.error("failed to load genesis from config");
+            }
+
+            if (databaseGenHash == null) {
+                LOG.error("failed to load block 0 from database");
+            }
+
+            LOG.error("genesis json rootHash {} is inconsistent with database rootHash {}\n" +
+                            "your configuration and genesis are incompatible, please do the following:\n" +
+                            "\t1) Remove your database folder\n" +
+                            "\t2) Verify that your genesis is correct by re-downloading the binary or checking online\n" +
+                            "\t3) Reboot with correct genesis and empty database\n",
+                    genesisHash == null ? "null" : ByteUtil.toHexString(genesisHash),
+                    databaseGenHash == null ? "null" : ByteUtil.toHexString(databaseGenHash));
+            System.exit(-1);
         }
 
         if (!Arrays.equals(blockchain.getBestBlock().getStateRoot(), EMPTY_TRIE_HASH)) {
             this.repository.syncToRoot(blockchain.getBestBlock().getStateRoot());
         }
 
-        this.repository.getBlockStore().load();
+//        this.repository.getBlockStore().load();
     }
 
     public void close() {

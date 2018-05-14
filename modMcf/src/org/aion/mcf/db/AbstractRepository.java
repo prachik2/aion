@@ -110,6 +110,8 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
     // Flag to see if the current instance is a snapshot.
     protected boolean isSnapshot = false;
 
+    protected boolean checkIntegrity = true;
+
     /**
      * Initializes all necessary databases and caches.
      *
@@ -167,6 +169,9 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
         // Setup datastores
         try {
             databaseGroup = new ArrayList<>();
+
+            checkIntegrity = Boolean
+                    .valueOf(cfg.getDatabaseConfig(CfgDb.Names.DEFAULT).getProperty(Props.CHECK_INTEGRITY));
 
             // getting state specific properties
             sharedProps = cfg.getDatabaseConfig(STATE_DB);
@@ -269,5 +274,10 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
         }
 
         return db;
+    }
+
+    @Override
+    public boolean isSnapshot() {
+        return isSnapshot;
     }
 }

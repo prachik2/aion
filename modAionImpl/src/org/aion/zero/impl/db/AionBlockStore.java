@@ -207,7 +207,7 @@ public class AionBlockStore extends AbstractPowBlockstore<AionBlock, A0BlockHead
         blockInfo.setHash(block.getHash());
         blockInfo.setMainChain(
                 mainChain); // FIXME: maybe here I should force reset main chain for all uncles on
-                            // that level
+        // that level
 
         blockInfos.add(blockInfo);
 

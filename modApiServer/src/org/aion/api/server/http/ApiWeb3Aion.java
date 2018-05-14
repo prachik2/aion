@@ -250,7 +250,7 @@ public class ApiWeb3Aion extends ApiAion {
                                                     e);
                                             throw (e);
                                         } // exception is swallowed by refresh and load. so just log
-                                          // it for our logs
+                                        // it for our logs
                                     }
                                 });
 
@@ -297,7 +297,7 @@ public class ApiWeb3Aion extends ApiAion {
                                                     "<miner-stats - could not queue up task: ", e);
                                             throw (e);
                                         } // exception is swallowed by refresh and load. so just log
-                                          // it for our logs
+                                        // it for our logs
                                     }
                                 });
 

@@ -172,9 +172,6 @@ public class BlockPropagationTest {
         }
 
         @Override
-        public void closeSocket(SocketChannel _sc, String _reason) {}
-
-        @Override
         public int getSelfIdHash() {
             return 0;
         }

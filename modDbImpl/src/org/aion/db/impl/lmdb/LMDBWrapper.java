@@ -24,7 +24,9 @@ public class LMDBWrapper extends AbstractDB {
     private Dbi<ByteBuffer> db;
     private Env<ByteBuffer> env;
 
-    static int maxValueSize = 16 * 1024 * 1024;
+    static int maxMapSize = 128 * 1024 * 1024;
+    static int maxValueSize = 4 * 1024;
+    static int maxKeySize = 32;
 
     public LMDBWrapper(String name, String path, boolean enableCache, boolean enableCompression) {
         super(name, path, enableCache, enableCompression);
@@ -68,7 +70,7 @@ public class LMDBWrapper extends AbstractDB {
             LOG.info("folder {} created", f.getName());
         }
 
-        env = create().setMapSize(10_485_760).setMaxDbs(1).open(f);
+        env = create().setMapSize(maxMapSize).setMaxDbs(16).setMaxReaders(16).open(f);
 
         try {
             db = env.openDbi(name, MDB_CREATE);
@@ -129,12 +131,11 @@ public class LMDBWrapper extends AbstractDB {
             final Cursor<ByteBuffer> c = db.openCursor(txn);
             for (Map.Entry<ByteArrayWrapper, byte[]> e : cache.entrySet()) {
                 if (e.getValue() == null) {
-                    final ByteBuffer key = allocateDirect(e.getKey().getData().length).put(e.getKey().getData()).flip();
-                    if (c.get(key, MDB_SET)) {
+                    if (c.get(allocateDirect(e.getKey().getData().length).put(e.getKey().getData()), MDB_SET)) {
                         c.delete();
                     }
                 } else {
-                    c.put(allocateDirect(e.getKey().getData().length).put(e.getKey().getData()).flip(), allocateDirect(e.getKey().getData().length).put(e.getValue()).flip());
+                    c.put(allocateDirect(e.getKey().getData().length).put(e.getKey().getData()), allocateDirect(e.getValue().length).put(e.getValue()));
                 }
             }
 
@@ -221,23 +222,21 @@ public class LMDBWrapper extends AbstractDB {
 
     @Override
     protected byte[] getInternal(byte[] k) {
-        ByteBuffer value = null;
-        ByteBuffer key = allocateDirect(env.getMaxKeySize());
-        key.put(k).flip();
+        ByteBuffer value;
+        ByteBuffer key = allocateDirect(maxKeySize).put(k).flip();
 
         try (Txn<ByteBuffer> rtx = env.txnRead()) {
             value = db.get(rtx, key);
+            if (value != null) {
+                byte[] arr = new byte[value.remaining()];
+                value.get(arr);
+                return arr;
+            }
         } catch (Throwable e) {
             LOG.error("getInternal throw an error " + this.toString() + ".", e.toString());
         }
 
-        if (value != null) {
-            byte[] arr = new byte[value.remaining()];
-            value.get(arr);
-            return arr;
-        } else {
-            return null;
-        }
+        return null;
     }
 
     @Override
@@ -245,15 +244,10 @@ public class LMDBWrapper extends AbstractDB {
         check(k);
         check();
 
-        final ByteBuffer key = allocateDirect(env.getMaxKeySize());
-        key.put(k).flip();
-
         if (v == null) {
-            db.delete(key);
+            db.delete(allocateDirect(k.length).put(k).flip());
         } else {
-            final ByteBuffer val = allocateDirect(maxValueSize);
-            val.put(v).flip();
-            db.put(key, val);
+            db.put(allocateDirect(k.length).put(k).flip(), allocateDirect(v.length).put(v).flip());
         }
     }
 
@@ -261,11 +255,7 @@ public class LMDBWrapper extends AbstractDB {
     public void delete(byte[] k) {
         check(k);
         check();
-
-        final ByteBuffer key = allocateDirect(env.getMaxKeySize());
-
-        key.put(k).flip();
-        db.delete(key);
+        db.delete(allocateDirect(k.length).put(k).flip());
     }
 
     @Override
@@ -280,19 +270,18 @@ public class LMDBWrapper extends AbstractDB {
                 byte[] v = e.getValue();
 
                 if (v == null) {
-                    final ByteBuffer key = allocateDirect(e.getKey().length).put(k).flip();
-                    if (c.get(key, MDB_SET)) {
+                    if (c.get(allocateDirect(k.length).put(k).flip(), MDB_SET)) {
                         c.delete();
                     }
                 } else {
-                    c.put(allocateDirect(e.getKey().length).put(k).flip(), allocateDirect(e.getKey().length).put(v).flip());
+                    c.put(allocateDirect(k.length).put(k).flip(), allocateDirect(v.length).put(v).flip());
                 }
             }
 
             c.close();
             txn.commit();
         } catch (Throwable e) {
-            LOG.error("Unable to close putBatch object in " + this.toString() + ".", e.toString());
+            LOG.error("Unable to close putBatch object in " + this.toString() + ".", e.getMessage());
         }
     }
 
@@ -350,8 +339,7 @@ public class LMDBWrapper extends AbstractDB {
             // add delete operations to batch
             // TODO: Considering the parallelstream delete
             for (byte[] key : keys) {
-                final ByteBuffer k = allocateDirect(key.length).put(key).flip();
-                if (cursor.get(k, MDB_SET)) {
+                if (cursor.get(allocateDirect(key.length).put(key).flip(), MDB_SET)) {
                     cursor.delete();
                 }
             }

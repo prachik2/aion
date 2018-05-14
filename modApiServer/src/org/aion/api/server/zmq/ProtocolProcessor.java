@@ -1,27 +1,32 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *     
- ******************************************************************************/
-
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.api.server.zmq;
 
 import static org.aion.api.server.pb.ApiAion0.JAVAAPI_VAR;
@@ -161,20 +166,28 @@ public class ProtocolProcessor implements Runnable {
                     for (int idx = 0; idx < objs.length; idx++) {
                         al.add(((EvtContract) objs[idx]).getMsgEventCt());
                         if (LOG.isTraceEnabled()) {
-                            LOG.trace("ProtocolProcessor.eventRun fltr event[{}]", ((EvtContract) objs[idx]).toJSON());
+                            LOG.trace(
+                                    "ProtocolProcessor.eventRun fltr event[{}]",
+                                    ((EvtContract) objs[idx]).toJSON());
                         }
                     }
 
                     if (!al.isEmpty()) {
-                        Message.rsp_EventCtCallback ecb = Message.rsp_EventCtCallback.newBuilder().addAllEc(al).build();
+                        Message.rsp_EventCtCallback ecb =
+                                Message.rsp_EventCtCallback.newBuilder().addAllEc(al).build();
                         byte[] rsp = ((HdlrZmq) this.handler).toRspEvtMsg(ecb.toByteArray());
 
                         try {
-                            byte[] socketId = ByteBuffer.allocate(5).put(ByteUtil.longToBytes(i), 3, 5).array();
+                            byte[] socketId =
+                                    ByteBuffer.allocate(5)
+                                            .put(ByteUtil.longToBytes(i), 3, 5)
+                                            .array();
                             sock.send(socketId, ZMQ.SNDMORE);
                             sock.send(rsp, ZMQ.PAIR);
                         } catch (Exception e) {
-                            LOG.error("ProtocolProcessor.callbackRun sock.send exception: " + e.getMessage());
+                            LOG.error(
+                                    "ProtocolProcessor.callbackRun sock.send exception: "
+                                            + e.getMessage());
                         }
                     }
                 }
@@ -218,12 +231,23 @@ public class ProtocolProcessor implements Runnable {
                 continue;
             }
 
-            byte[] rsp = tps.toTxReturnCode() != 105
-                    ? ((HdlrZmq) this.handler).toRspMsg(tps.getMsgHash(), tps.toTxReturnCode(), tps.getError())
-                    : ((HdlrZmq) this.handler).toRspMsg(tps.getMsgHash(), tps.toTxReturnCode(), tps.getError(), tps.getTxResult());
+            byte[] rsp =
+                    tps.toTxReturnCode() != 105
+                            ? ((HdlrZmq) this.handler)
+                                    .toRspMsg(
+                                            tps.getMsgHash(), tps.toTxReturnCode(), tps.getError())
+                            : ((HdlrZmq) this.handler)
+                                    .toRspMsg(
+                                            tps.getMsgHash(),
+                                            tps.toTxReturnCode(),
+                                            tps.getError(),
+                                            tps.getTxResult());
             if (LOG.isTraceEnabled()) {
-                LOG.trace("callbackRun send. socketID: [{}], msgHash: [{}], txReturnCode: [{}]/n rspMsg: [{}]",
-                        Hex.toHexString(tps.getSocketId()), Hex.toHexString(tps.getMsgHash()), tps.toTxReturnCode(),
+                LOG.trace(
+                        "callbackRun send. socketID: [{}], msgHash: [{}], txReturnCode: [{}]/n rspMsg: [{}]",
+                        Hex.toHexString(tps.getSocketId()),
+                        Hex.toHexString(tps.getMsgHash()),
+                        tps.toTxReturnCode(),
                         Hex.toHexString(rsp));
             }
             try {
@@ -231,7 +255,8 @@ public class ProtocolProcessor implements Runnable {
                 sock.send(rsp, ZMQ.PAIR);
             } catch (Exception e) {
                 if (LOG.isErrorEnabled()) {
-                    LOG.error("ProtocolProcessor.callbackRun sock.send exception: " + e.getMessage());
+                    LOG.error(
+                            "ProtocolProcessor.callbackRun sock.send exception: " + e.getMessage());
                 }
             }
         }
@@ -249,7 +274,9 @@ public class ProtocolProcessor implements Runnable {
             try {
                 byte[] socketId = sock.recv(0);
                 if (LOG.isTraceEnabled()) {
-                    LOG.trace("ProtocolProcessor.workerRun socketID: [{}]", Hex.toHexString(socketId));
+                    LOG.trace(
+                            "ProtocolProcessor.workerRun socketID: [{}]",
+                            Hex.toHexString(socketId));
                 }
                 if (socketId != null && socketId.length == SOCKETID_LEN) {
                     byte[] req = sock.recv(0);
@@ -266,12 +293,15 @@ public class ProtocolProcessor implements Runnable {
                         sock.send(rsp, ZMQ.PAIR);
                     } catch (Exception e) {
                         if (LOG.isErrorEnabled()) {
-                            LOG.error("ProtocolProcessor.workerRun sock.send exception: " + e.getMessage());
+                            LOG.error(
+                                    "ProtocolProcessor.workerRun sock.send exception: "
+                                            + e.getMessage());
                         }
                     }
                 } else {
                     if (LOG.isErrorEnabled()) {
-                        LOG.error("ProtocolProcessor.workerRun incorrect socketID [{}]",
+                        LOG.error(
+                                "ProtocolProcessor.workerRun incorrect socketID [{}]",
                                 socketId == null ? "null" : Hex.toHexString(socketId));
                     }
                 }
@@ -302,7 +332,9 @@ public class ProtocolProcessor implements Runnable {
                     if (LOG.isTraceEnabled()) {
                         LOG.trace("ProtocolProcessor.hbRun reqMsg: [{}]", Hex.toHexString(req));
                     }
-                    byte[] rsp = ApiUtil.toReturnHeader(JAVAAPI_VAR, Message.Retcode.r_heartbeatReturn_VALUE);
+                    byte[] rsp =
+                            ApiUtil.toReturnHeader(
+                                    JAVAAPI_VAR, Message.Retcode.r_heartbeatReturn_VALUE);
                     if (LOG.isTraceEnabled()) {
                         LOG.trace("ProtocolProcessor.hbRun rspMsg: [{}]", Hex.toHexString(rsp));
                     }
@@ -312,13 +344,16 @@ public class ProtocolProcessor implements Runnable {
                         sock.send(rsp, ZMQ.PAIR);
                     } catch (Exception e) {
                         if (LOG.isErrorEnabled()) {
-                            LOG.error("ProtocolProcessor.hbRun sock.send exception: " + e.getMessage());
+                            LOG.error(
+                                    "ProtocolProcessor.hbRun sock.send exception: "
+                                            + e.getMessage());
                         }
                     }
                 } else {
                     if (LOG.isErrorEnabled()) {
-                        LOG.error("ProtocolProcessor.hbRun incorrect socketID [{}]",
-                            socketId == null ? "null" : Hex.toHexString(socketId));
+                        LOG.error(
+                                "ProtocolProcessor.hbRun incorrect socketID [{}]",
+                                socketId == null ? "null" : Hex.toHexString(socketId));
                     }
                 }
             } catch (Exception e) {

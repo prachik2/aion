@@ -1,29 +1,40 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
- ******************************************************************************/
-
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.zero.impl.db;
 
+import static org.aion.base.util.ByteUtil.EMPTY_BYTE_ARRAY;
+import static org.aion.crypto.HashUtil.EMPTY_TRIE_HASH;
+
+import java.io.File;
+import java.math.BigInteger;
+import java.util.*;
 import org.aion.base.db.*;
 import org.aion.base.type.Address;
 import org.aion.base.util.Hex;
@@ -42,28 +53,17 @@ import org.aion.zero.types.A0BlockHeader;
 import org.aion.zero.types.AionTransaction;
 import org.aion.zero.types.AionTxReceipt;
 
-import java.io.File;
-import java.math.BigInteger;
-import java.util.*;
-
-import static org.aion.base.util.ByteUtil.EMPTY_BYTE_ARRAY;
-import static org.aion.crypto.HashUtil.EMPTY_TRIE_HASH;
-
-/**
- * Has direct database connection.
- */
-public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHeader, AionBlockStore> {
+/** Has direct database connection. */
+public class AionRepositoryImpl
+        extends AbstractRepository<AionBlock, A0BlockHeader, AionBlockStore> {
 
     private TransactionStore<AionTransaction, AionTxReceipt, AionTxInfo> transactionStore;
 
     /**
-     * used by getSnapShotTo
-     *
-     * @ATTENTION: when do snap shot, another instance will be created. Make
-     *         sure it is used only by getSnapShotTo
+     * used by getSnapShotTo @ATTENTION: when do snap shot, another instance will be created. Make
+     * sure it is used only by getSnapShotTo
      */
-    protected AionRepositoryImpl() {
-    }
+    protected AionRepositoryImpl() {}
 
     protected AionRepositoryImpl(IRepositoryConfig repoConfig) {
         this.cfg = repoConfig;
@@ -74,11 +74,14 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         // configuration
         private static CfgAion config = CfgAion.inst();
         // repository singleton instance
-        private final static AionRepositoryImpl inst = new AionRepositoryImpl(
-                new RepositoryConfig(new File(config.getBasePath(), config.getDb().getPath()).getAbsolutePath(),
-                                     -1,
-                                     ContractDetailsAion.getInstance(),
-                                     config.getDb()));
+        private static final AionRepositoryImpl inst =
+                new AionRepositoryImpl(
+                        new RepositoryConfig(
+                                new File(config.getBasePath(), config.getDb().getPath())
+                                        .getAbsolutePath(),
+                                -1,
+                                ContractDetailsAion.getInstance(),
+                                config.getDb()));
     }
 
     public static AionRepositoryImpl inst() {
@@ -94,8 +97,9 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
             initializeDatabasesAndCaches();
 
             // Setup the cache for transaction data source.
-            this.transactionStore = new TransactionStore<>(transactionDatabase,
-                    AionTransactionStoreSerializer.serializer);
+            this.transactionStore =
+                    new TransactionStore<>(
+                            transactionDatabase, AionTransactionStoreSerializer.serializer);
 
             // Setup block store.
             this.blockStore = new AionBlockStore(indexDatabase, blockDatabase, checkIntegrity);
@@ -107,9 +111,7 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         }
     }
 
-    /**
-     * @implNote The transaction store is not locked within the repository implementation.
-     */
+    /** @implNote The transaction store is not locked within the repository implementation. */
     public TransactionStore<AionTransaction, AionTxReceipt, AionTxInfo> getTransactionStore() {
         return this.transactionStore;
     }
@@ -119,7 +121,8 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
     }
 
     @Override
-    public void updateBatch(Map<Address, AccountState> stateCache,
+    public void updateBatch(
+            Map<Address, AccountState> stateCache,
             Map<Address, IContractDetails<DataWord>> detailsCache) {
         rwLock.writeLock().lock();
 
@@ -148,17 +151,19 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
                             updateAccountState(address, accountState);
 
                             if (LOG.isTraceEnabled()) {
-                                LOG.trace("update: [{}],nonce: [{}] balance: [{}] [{}]",
-                                          Hex.toHexString(address.toBytes()),
-                                          accountState.getNonce(),
-                                          accountState.getBalance(),
-                                          Hex.toHexString(contractDetails.getStorageHash()));
+                                LOG.trace(
+                                        "update: [{}],nonce: [{}] balance: [{}] [{}]",
+                                        Hex.toHexString(address.toBytes()),
+                                        accountState.getNonce(),
+                                        accountState.getBalance(),
+                                        Hex.toHexString(contractDetails.getStorageHash()));
                             }
                         }
                         continue;
                     }
 
-                    ContractDetailsCacheImpl contractDetailsCache = (ContractDetailsCacheImpl) contractDetails;
+                    ContractDetailsCacheImpl contractDetailsCache =
+                            (ContractDetailsCacheImpl) contractDetails;
                     if (contractDetailsCache.origContract == null) {
                         contractDetailsCache.origContract = this.cfg.contractDetailsImpl();
 
@@ -166,7 +171,8 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
                             contractDetailsCache.origContract.setAddress(address);
                         } catch (Exception e) {
                             e.printStackTrace();
-                            LOG.error("contractDetailsCache setAddress exception [{}]", e.toString());
+                            LOG.error(
+                                    "contractDetailsCache setAddress exception [{}]", e.toString());
                         }
 
                         contractDetailsCache.commit();
@@ -183,11 +189,12 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
                     updateAccountState(address, accountState);
 
                     if (LOG.isTraceEnabled()) {
-                        LOG.trace("update: [{}],nonce: [{}] balance: [{}] [{}]",
-                                  Hex.toHexString(address.toBytes()),
-                                  accountState.getNonce(),
-                                  accountState.getBalance(),
-                                  Hex.toHexString(contractDetails.getStorageHash()));
+                        LOG.trace(
+                                "update: [{}],nonce: [{}] balance: [{}] [{}]",
+                                Hex.toHexString(address.toBytes()),
+                                accountState.getNonce(),
+                                accountState.getBalance(),
+                                Hex.toHexString(contractDetails.getStorageHash()));
                     }
                 }
             }
@@ -200,10 +207,9 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         }
     }
 
-    /**
-     * @implNote The method calling this method must handle the locking.
-     */
-    private void updateContractDetails(final Address address, final IContractDetails<DataWord> contractDetails) {
+    /** @implNote The method calling this method must handle the locking. */
+    private void updateContractDetails(
+            final Address address, final IContractDetails<DataWord> contractDetails) {
         // locked by calling method
         detailsDS.update(address, contractDetails);
     }
@@ -364,9 +370,7 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         return (account == null) ? BigInteger.ZERO : account.getNonce();
     }
 
-    /**
-     * @implNote The method calling this method must handle the locking.
-     */
+    /** @implNote The method calling this method must handle the locking. */
     private void updateAccountState(Address address, AccountState accountState) {
         // locked by calling method
         worldState.update(address.toBytes(), accountState.getEncoded());
@@ -374,10 +378,10 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
 
     /**
      * @inheritDoc
-     * @implNote Any other method calling this can rely on the fact that
-     *         the contract details returned is a newly created object by {@link IContractDetails#getSnapshotTo(byte[])}.
-     *         Since this querying method it locked, the methods calling it
-     *         <b>may not need to be locked or synchronized</b>, depending on the specific use case.
+     * @implNote Any other method calling this can rely on the fact that the contract details
+     *     returned is a newly created object by {@link IContractDetails#getSnapshotTo(byte[])}.
+     *     Since this querying method it locked, the methods calling it <b>may not need to be locked
+     *     or synchronized</b>, depending on the specific use case.
      */
     @Override
     public IContractDetails<DataWord> getContractDetails(Address address) {
@@ -418,10 +422,9 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
 
     /**
      * @inheritDoc
-     * @implNote Any other method calling this can rely on the fact that
-     *         the account state returned is a newly created object.
-     *         Since this querying method it locked, the methods calling it
-     *         <b>may not need to be locked or synchronized</b>, depending on the specific use case.
+     * @implNote Any other method calling this can rely on the fact that the account state returned
+     *     is a newly created object. Since this querying method it locked, the methods calling it
+     *     <b>may not need to be locked or synchronized</b>, depending on the specific use case.
      */
     @Override
     public AccountState getAccountState(Address address) {
@@ -434,7 +437,8 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
 
             if (accountData.length != 0) {
                 result = new AccountState(accountData);
-                LOG.debug("New AccountSate [{}], State [{}]", address.toString(), result.toString());
+                LOG.debug(
+                        "New AccountSate [{}], State [{}]", address.toString(), result.toString());
             }
             return result;
         } finally {
@@ -448,11 +452,13 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
     }
 
     /**
-     * @implNote The loaded objects are fresh copies of the original account
-     *         state and contract details.
+     * @implNote The loaded objects are fresh copies of the original account state and contract
+     *     details.
      */
     @Override
-    public void loadAccountState(Address address, Map<Address, AccountState> cacheAccounts,
+    public void loadAccountState(
+            Address address,
+            Map<Address, AccountState> cacheAccounts,
             Map<Address, IContractDetails<DataWord>> cacheDetails) {
 
         AccountState account = getAccountState(address);
@@ -502,11 +508,11 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
             detailsDS.syncLargeStorage();
 
             // temporarily removed since never used
-        /* if (pruneBlockCount >= 0) {
-            stateDSPrune.storeBlockChanges(blockHeader);
-            detailsDS.getStorageDSPrune().storeBlockChanges(blockHeader);
-            pruneBlocks(blockHeader);
-        } */
+            /* if (pruneBlockCount >= 0) {
+                stateDSPrune.storeBlockChanges(blockHeader);
+                detailsDS.getStorageDSPrune().storeBlockChanges(blockHeader);
+                pruneBlocks(blockHeader);
+            } */
         } finally {
             rwLock.writeLock().unlock();
         }
@@ -595,10 +601,7 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         }
     }
 
-    /**
-     * This function cannot for any reason fail, otherwise we may have dangling
-     * file IO locks
-     */
+    /** This function cannot for any reason fail, otherwise we may have dangling file IO locks */
     @Override
     public void close() {
         rwLock.writeLock().lock();
@@ -660,7 +663,8 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
                     pendingTxCacheDatabase = null;
                 }
             } catch (Exception e) {
-                LOGGEN.error("Exception occurred while closing the pendingTxCacheDatabase store.", e);
+                LOGGEN.error(
+                        "Exception occurred while closing the pendingTxCacheDatabase store.", e);
             }
         } finally {
             rwLock.writeLock().unlock();
@@ -668,12 +672,11 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
     }
 
     /**
-     * Retrieves the underlying state database that sits below all caches. This
-     * is usually provided by {@link org.aion.db.impl.leveldb.LevelDB} or
-     * {@link org.aion.db.impl.leveldb.LevelDB}.
-     * <p>
-     * Note that referencing the state database directly is unsafe, and should
-     * only be used for debugging and testing purposes.
+     * Retrieves the underlying state database that sits below all caches. This is usually provided
+     * by {@link org.aion.db.impl.leveldb.LevelDB} or {@link org.aion.db.impl.leveldb.LevelDB}.
+     *
+     * <p>Note that referencing the state database directly is unsafe, and should only be used for
+     * debugging and testing purposes.
      *
      * @return
      */
@@ -682,12 +685,11 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
     }
 
     /**
-     * Retrieves the underlying details database that sits below all caches.
-     * This is usually provided by {@link org.aion.db.impl.mockdb.MockDB}
-     * or {@link org.aion.db.impl.mockdb.MockDB}.
-     * <p>
-     * Note that referencing the state database directly is unsafe, and should
-     * only be used for debugging and testing purposes.
+     * Retrieves the underlying details database that sits below all caches. This is usually
+     * provided by {@link org.aion.db.impl.mockdb.MockDB} or {@link org.aion.db.impl.mockdb.MockDB}.
+     *
+     * <p>Note that referencing the state database directly is unsafe, and should only be used for
+     * debugging and testing purposes.
      *
      * @return
      */
@@ -695,17 +697,20 @@ public class AionRepositoryImpl extends AbstractRepository<AionBlock, A0BlockHea
         return this.detailsDatabase;
     }
 
-    /**
-     * For testing.
-     */
+    /** For testing. */
     public IByteArrayKeyValueDatabase getIndexDatabase() {
         return this.indexDatabase;
     }
 
     @Override
     public String toString() {
-        return "AionRepositoryImpl{ identityHashCode=" + System.identityHashCode(this) + ", " + //
-                "databaseGroupSize=" + (databaseGroup == null ? 0 : databaseGroup.size()) + '}';
+        return "AionRepositoryImpl{ identityHashCode="
+                + System.identityHashCode(this)
+                + ", "
+                + //
+                "databaseGroupSize="
+                + (databaseGroup == null ? 0 : databaseGroup.size())
+                + '}';
     }
 
     @Override

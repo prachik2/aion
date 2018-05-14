@@ -35,6 +35,7 @@
 
 package org.aion.zero.impl.sync.handler;
 
+import java.util.List;
 import org.aion.mcf.types.BlockIdentifier;
 import org.aion.p2p.Ctrl;
 import org.aion.p2p.Handler;
@@ -46,17 +47,11 @@ import org.aion.zero.impl.sync.msg.ReqBlocksHeaders;
 import org.aion.zero.impl.sync.msg.ResBlocksHeaders;
 import org.aion.zero.types.A0BlockHeader;
 import org.slf4j.Logger;
-import java.util.List;
 
-/**
- *
- * @author chris
- * handler for request block headers from network
- *
- */
+/** @author chris handler for request block headers from network */
 public final class ReqBlocksHeadersHandler extends Handler {
 
-    private final static int MAX_NUM_OF_BLOCKS = 96;
+    private static final int MAX_NUM_OF_BLOCKS = 96;
 
     private final Logger log;
 
@@ -66,7 +61,11 @@ public final class ReqBlocksHeadersHandler extends Handler {
 
     private final boolean isSyncOnlyNode;
 
-    public ReqBlocksHeadersHandler(final Logger _log, final IAionBlockchain _blockchain, final IP2pMgr _p2pMgr, final boolean isSyncOnlyNode) {
+    public ReqBlocksHeadersHandler(
+            final Logger _log,
+            final IAionBlockchain _blockchain,
+            final IP2pMgr _p2pMgr,
+            final boolean isSyncOnlyNode) {
         super(Ver.V0, Ctrl.SYNC, Act.REQ_BLOCKS_HEADERS);
         this.log = _log;
         this.blockchain = _blockchain;
@@ -76,22 +75,31 @@ public final class ReqBlocksHeadersHandler extends Handler {
 
     @Override
     public void receive(int _nodeIdHashcode, String _displayId, final byte[] _msgBytes) {
-        if(isSyncOnlyNode)
-            return;
+        if (isSyncOnlyNode) return;
 
         ReqBlocksHeaders reqHeaders = ReqBlocksHeaders.decode(_msgBytes);
         if (reqHeaders != null) {
             long fromBlock = reqHeaders.getFromBlock();
             int take = reqHeaders.getTake();
             if (log.isDebugEnabled()) {
-                this.log.debug("<req-headers from-number={} size={} node={}>", fromBlock, take, _displayId);
+                this.log.debug(
+                        "<req-headers from-number={} size={} node={}>",
+                        fromBlock,
+                        take,
+                        _displayId);
             }
-            List<A0BlockHeader> headers = this.blockchain.getListOfHeadersStartFrom(
-                    new BlockIdentifier(null, fromBlock), 0, Math.min(take, MAX_NUM_OF_BLOCKS), false);
+            List<A0BlockHeader> headers =
+                    this.blockchain.getListOfHeadersStartFrom(
+                            new BlockIdentifier(null, fromBlock),
+                            0,
+                            Math.min(take, MAX_NUM_OF_BLOCKS),
+                            false);
             ResBlocksHeaders rbhs = new ResBlocksHeaders(headers);
             this.p2pMgr.send(_nodeIdHashcode, _displayId, rbhs);
         } else {
-            this.log.error("<req-headers decode-error msg-bytes={} node={}>", _msgBytes == null ? 0 : _msgBytes.length,
+            this.log.error(
+                    "<req-headers decode-error msg-bytes={} node={}>",
+                    _msgBytes == null ? 0 : _msgBytes.length,
                     _nodeIdHashcode);
         }
     }

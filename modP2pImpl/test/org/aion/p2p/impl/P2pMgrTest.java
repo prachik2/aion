@@ -3,39 +3,41 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *
  * Aion foundation.
- *
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
 
 package org.aion.p2p.impl;
 
-import org.aion.p2p.impl1.P2pMgr;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.Map;
 import java.util.UUID;
+import org.aion.p2p.impl1.P2pMgr;
+import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-
-/**
- * @author chris
- */
+/** @author chris */
 public class P2pMgrTest {
 
     private String nodeId1 = UUID.randomUUID().toString();
@@ -55,9 +57,7 @@ public class P2pMgrTest {
         int port2 = 30304;
 
         // we want node 1 to connect to node 2
-        String[] nodes = new String[] {
-                "p2p://" + id2 + "@" + ip + ":" + port2
-        };
+        String[] nodes = new String[] {"p2p://" + id2 + "@" + ip + ":" + port2};
 
         // to guarantee they don't receive the same port
         while (port2 == port1) {
@@ -65,34 +65,25 @@ public class P2pMgrTest {
         }
 
         System.out.println("connector on: " + TestUtilities.formatAddr(id1, ip, port1));
-        P2pMgr connector = new P2pMgr(0,
-                "",
-                id1,
-                ip,
-                port1,
-                nodes,
-                false,
-                128,
-                128,
-                false,
-                true,
-                false,
-                50);
+        P2pMgr connector =
+                new P2pMgr(0, "", id1, ip, port1, nodes, false, 128, 128, false, true, false, 50);
 
         System.out.println("receiver on: " + TestUtilities.formatAddr(id2, ip, port2));
-        P2pMgr receiver = new P2pMgr(0,
-                "",
-                id2,
-                ip,
-                port2,
-                new String[0],
-                false,
-                128,
-                128,
-                false,
-                true,
-                false,
-                50);
+        P2pMgr receiver =
+                new P2pMgr(
+                        0,
+                        "",
+                        id2,
+                        ip,
+                        port2,
+                        new String[0],
+                        false,
+                        128,
+                        128,
+                        false,
+                        true,
+                        false,
+                        50);
 
         return Map.entry(connector, receiver);
     }
@@ -100,73 +91,41 @@ public class P2pMgrTest {
     @Test
     public void testIgnoreSameNodeIdAsSelf() {
 
-        String[] nodes = new String[]{
-                "p2p://" + nodeId1 + "@" + ip2+ ":" + port2
-        };
+        String[] nodes = new String[] {"p2p://" + nodeId1 + "@" + ip2 + ":" + port2};
 
-        P2pMgr p2p = new P2pMgr(0,
-                "",
-                nodeId1,
-                ip1,
-                port1,
-                nodes,
-                false,
-                128,
-                128,
-                false,
-                false,
-                false,
-                50);
+        P2pMgr p2p =
+                new P2pMgr(
+                        0, "", nodeId1, ip1, port1, nodes, false, 128, 128, false, false, false,
+                        50);
         assertEquals(p2p.getTempNodesCount(), 0);
-
     }
 
     @Test
-    public void testIgnoreSameIpAndPortAsSelf(){
+    public void testIgnoreSameIpAndPortAsSelf() {
 
-        String[] nodes = new String[]{
-                "p2p://" + nodeId2 + "@" + ip1+ ":" + port1
-        };
+        String[] nodes = new String[] {"p2p://" + nodeId2 + "@" + ip1 + ":" + port1};
 
-        P2pMgr p2p = new P2pMgr(0,
-                "",
-                nodeId1,
-                ip1,
-                port1,
-                nodes,
-                false,
-                128,
-                128,
-                false,
-                false,
-                false,
-                50);
-        assertEquals(0,p2p.getTempNodesCount());
-
+        P2pMgr p2p =
+                new P2pMgr(
+                        0, "", nodeId1, ip1, port1, nodes, false, 128, 128, false, false, false,
+                        50);
+        assertEquals(0, p2p.getTempNodesCount());
     }
 
     @Test
-    public void testTempNodes(){
+    public void testTempNodes() {
 
-        String[] nodes = new String[]{
-                "p2p://" + nodeId2 + "@" + ip1+ ":" + port2,
-                "p2p://" + nodeId2 + "@" + ip2+ ":" + port1,
-                "p2p://" + nodeId2 + "@" + ip2+ ":" + port2,
-        };
+        String[] nodes =
+                new String[] {
+                    "p2p://" + nodeId2 + "@" + ip1 + ":" + port2,
+                    "p2p://" + nodeId2 + "@" + ip2 + ":" + port1,
+                    "p2p://" + nodeId2 + "@" + ip2 + ":" + port2,
+                };
 
-        P2pMgr p2p = new P2pMgr(0,
-                "",
-                nodeId1,
-                ip1,
-                port1,
-                nodes,
-                false,
-                128,
-                128,
-                false,
-                false,
-                false,
-                50);
+        P2pMgr p2p =
+                new P2pMgr(
+                        0, "", nodeId1, ip1, port1, nodes, false, 128, 128, false, false, false,
+                        50);
         assertEquals(p2p.getTempNodesCount(), 3);
     }
 }

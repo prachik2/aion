@@ -46,18 +46,18 @@ import org.slf4j.Logger;
 
 /**
  * handler for status request from network
- * 
+ *
  * @author chris
  */
 public final class ReqStatusHandler extends Handler {
 
-	private final Logger log;
+    private final Logger log;
 
-	private IAionBlockchain chain;
+    private IAionBlockchain chain;
 
-	private IP2pMgr mgr;
+    private IP2pMgr mgr;
 
-	private byte[] genesisHash;
+    private byte[] genesisHash;
 
     private final int UPDATE_INTERVAL = 500;
 
@@ -65,25 +65,31 @@ public final class ReqStatusHandler extends Handler {
 
     private volatile long cacheTs = 0;
 
-	public ReqStatusHandler(final Logger _log, final IAionBlockchain _chain, final IP2pMgr _mgr,
-			final byte[] _genesisHash) {
-		super(Ver.V0, Ctrl.SYNC, Act.REQ_STATUS);
-		this.log = _log;
-		this.chain = _chain;
-		this.mgr = _mgr;
-		this.genesisHash = _genesisHash;
-		this.cache = new ResStatus(0, new byte[0], new byte[0], _genesisHash);
-	}
+    public ReqStatusHandler(
+            final Logger _log,
+            final IAionBlockchain _chain,
+            final IP2pMgr _mgr,
+            final byte[] _genesisHash) {
+        super(Ver.V0, Ctrl.SYNC, Act.REQ_STATUS);
+        this.log = _log;
+        this.chain = _chain;
+        this.mgr = _mgr;
+        this.genesisHash = _genesisHash;
+        this.cache = new ResStatus(0, new byte[0], new byte[0], _genesisHash);
+    }
 
-	@Override
-	public void receive(int _nodeIdHashcode, String _displayId, byte[] _msg) {
-	    long now = System.currentTimeMillis();
+    @Override
+    public void receive(int _nodeIdHashcode, String _displayId, byte[] _msg) {
+        long now = System.currentTimeMillis();
         if ((now - cacheTs) > this.UPDATE_INTERVAL) {
             synchronized (cache) {
                 try {
-                    cache = new ResStatus(this.chain.getBestBlock().getNumber(),
-                            this.chain.getTotalDifficulty().toByteArray(), this.chain.getBestBlockHash(),
-                            this.genesisHash);
+                    cache =
+                            new ResStatus(
+                                    this.chain.getBestBlock().getNumber(),
+                                    this.chain.getTotalDifficulty().toByteArray(),
+                                    this.chain.getBestBlockHash(),
+                                    this.genesisHash);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -92,9 +98,7 @@ public final class ReqStatusHandler extends Handler {
         }
 
         this.mgr.send(_nodeIdHashcode, _displayId, cache);
-        this.log.debug("<req-status node={} return-blk={}>",
-            _displayId,
-            cache.getBestBlockNumber()
-        );
-	}
+        this.log.debug(
+                "<req-status node={} return-blk={}>", _displayId, cache.getBestBlockNumber());
+    }
 }

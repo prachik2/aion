@@ -1,37 +1,32 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- *     The aion network project leverages useful source code from other
- *     open source projects. We greatly appreciate the effort that was
- *     invested in these projects and we thank the individual contributors
- *     for their work. For provenance information and contributors
- *     please see <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *     Aion foundation.
- *     <ether.camp> team through the ethereumJ library.
- *     Ether.Camp Inc. (US) team through Ethereum Harmony.
- *     John Tromp through the Equihash solver.
- *     Samuel Neves through the BLAKE2 implementation.
- *     Zcash project team.
- *     Bitcoinj team.
- ******************************************************************************/
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.base.util;
 
 import java.lang.reflect.Array;
@@ -53,8 +48,7 @@ public class Utils {
     public static final Object dummy = new Object();
 
     /**
-     * @param number
-     *            should be in form '0x34fabd34....'
+     * @param number should be in form '0x34fabd34....'
      * @return String
      */
     public static BigInteger unifiedNumericToBigInteger(String number) {
@@ -71,11 +65,9 @@ public class Utils {
     }
 
     /**
-     * Return formatted Date String: yyyy.MM.dd HH:mm:ss Based on Unix's time()
-     * input in seconds
+     * Return formatted Date String: yyyy.MM.dd HH:mm:ss Based on Unix's time() input in seconds
      *
-     * @param timestamp
-     *            seconds since start of Unix-time
+     * @param timestamp seconds since start of Unix-time
      * @return String formatted as - yyyy.MM.dd HH:mm:ss
      */
     public static String longToDateTime(long timestamp) {
@@ -104,9 +96,7 @@ public class Utils {
     /**
      * Decodes a hex string to address bytes and checks validity
      *
-     * @param hex
-     *            - a hex string of the address, e.g.,
-     *            6c386a4b26f73c802f34673f7248bb118f97424a
+     * @param hex - a hex string of the address, e.g., 6c386a4b26f73c802f34673f7248bb118f97424a
      * @return - decode and validated address byte[]
      */
     public static byte[] addressStringToBytes(String hex) {
@@ -127,31 +117,26 @@ public class Utils {
         return addr != null && addr.length == 20;
     }
 
-    /**
-     * Validate a passed hex string is a valid address
-     *
-     *
-     */
+    /** Validate a passed hex string is a valid address */
     public static boolean isValidAddress(String address) {
-        if(address == null || address.isEmpty() || address.length() < 64) {
+        if (address == null || address.isEmpty() || address.length() < 64) {
             return false;
         }
 
-        if(address.startsWith("0x")) {
+        if (address.startsWith("0x")) {
             address = address.substring(2);
         }
 
         // Will need to change this for a1, a2....
-        if(address.startsWith("a0")) {
+        if (address.startsWith("a0")) {
             return address.length() == 64 && address.substring(2).matches("^[0-9A-Fa-f]+$");
-        }else {
+        } else {
             return false;
         }
     }
 
     /**
-     * @param addr
-     *            length should be 20
+     * @param addr length should be 20
      * @return short string represent 1f21c...
      */
     public static String getAddressShortString(byte[] addr) {
@@ -248,7 +233,6 @@ public class Utils {
         }
         String alignString = repeat("" + fillChar, targetLen - s.length());
         return alignRight ? alignString + s : s + alignString;
-
     }
 
     public static String repeat(String s, int n) {
@@ -265,50 +249,73 @@ public class Utils {
         }
     }
 
-
     private static final Pattern matchPattern = Pattern.compile("^([0-9]+)([a-zA-Z]+)$");
     public static final long KILO_BYTE = 1024;
     public static final long MEGA_BYTE = 1048576;
     public static final long GIGA_BYTE = 1073741824;
     /**
-     * <p>
-     * Matches file sizes based on fileSize string, in the format:
-     * [numericalValue][sizeDescriptor]
-     * </p>
+     * Matches file sizes based on fileSize string, in the format: [numericalValue][sizeDescriptor]
      *
-     * <p>
-     * Examples of acceptable formats:
-     *
+     * <p>Examples of acceptable formats:
      * <li>
-     *   <ul>10b</ul>
-     *   <ul>10B</ul>
-     *   <ul>10K</ul>
-     *   <ul>10KB</ul>
-     *   <ul>10kB</ul>
-     *   <ul>10M</ul>
-     *   <ul>10mB</ul>
-     *   <ul>10MB</ul>
-     *   <ul>10G</ul>
-     *   <ul>10gB</ul>
-     *   <ul>10GB</ul>
-     * </li>
-     * </p>
      *
-     * <p>
-     * Commas are <b>not</b> accepted by the parser, and are considered invalid.
+     *     <ul>
+     *       10b
+     * </ul>
      *
-     * Note: Anything beyond {@code gigaByte (GB, G, gB)} is not considered valid, and will
-     * be treated as a parse exception.
+     * <ul>
+     *   10B
+     * </ul>
      *
-     * Note: this function assumes the binary representation of magnitudes,
-     * therefore 1kB (kiloByte) is not {@code 1000 bytes} but rather {@code 1024 bytes}.
-     * </p>
+     * <ul>
+     *   10K
+     * </ul>
+     *
+     * <ul>
+     *   10KB
+     * </ul>
+     *
+     * <ul>
+     *   10kB
+     * </ul>
+     *
+     * <ul>
+     *   10M
+     * </ul>
+     *
+     * <ul>
+     *   10mB
+     * </ul>
+     *
+     * <ul>
+     *   10MB
+     * </ul>
+     *
+     * <ul>
+     *   10G
+     * </ul>
+     *
+     * <ul>
+     *   10gB
+     * </ul>
+     *
+     * <ul>
+     *   10GB
+     * </ul>
+     *
+     * <p>Commas are <b>not</b> accepted by the parser, and are considered invalid.
+     *
+     * <p>Note: Anything beyond {@code gigaByte (GB, G, gB)} is not considered valid, and will be
+     * treated as a parse exception.
+     *
+     * <p>Note: this function assumes the binary representation of magnitudes, therefore 1kB
+     * (kiloByte) is not {@code 1000 bytes} but rather {@code 1024 bytes}.
      *
      * @param fileSize file size string
-     * @return {@code Optional.of(fileSizeInt)} if we were able to successfully decode
-     * the filesize string, otherwise outputs {@code Optional.empty()} indicating that
-     * we were unable to decode the file size string, this usually refers to some
-     * sort of syntactic error made by the user.
+     * @return {@code Optional.of(fileSizeInt)} if we were able to successfully decode the filesize
+     *     string, otherwise outputs {@code Optional.empty()} indicating that we were unable to
+     *     decode the file size string, this usually refers to some sort of syntactic error made by
+     *     the user.
      */
     public static Optional<Long> parseSize(String fileSize) {
         Matcher m = matchPattern.matcher(fileSize);

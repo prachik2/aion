@@ -1,27 +1,37 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- ******************************************************************************/
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.zero.impl.db;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.aion.base.type.IBlock;
 import org.aion.log.AionLoggerFactory;
 import org.aion.mcf.db.IBlockStoreBase;
@@ -29,20 +39,15 @@ import org.aion.zero.impl.AionBlockchainImpl;
 import org.aion.zero.impl.config.CfgAion;
 import org.aion.zero.impl.core.IAionBlockchain;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 public class RecoveryUtils {
 
     public enum Status {
-        SUCCESS, FAILURE, ILLEGAL_ARGUMENT
+        SUCCESS,
+        FAILURE,
+        ILLEGAL_ARGUMENT
     }
 
-    /**
-     * Used by the CLI call.
-     */
+    /** Used by the CLI call. */
     public static Status revertTo(long nbBlock) {
         // ensure mining is disabled
         CfgAion cfg = CfgAion.inst();
@@ -66,9 +71,7 @@ public class RecoveryUtils {
         return status;
     }
 
-    /**
-     * Used by the CLI call.
-     */
+    /** Used by the CLI call. */
     public static void pruneAndCorrect() {
         // ensure mining is disabled
         CfgAion cfg = CfgAion.inst();
@@ -101,9 +104,7 @@ public class RecoveryUtils {
         blockchain.getRepository().close();
     }
 
-    /**
-     * Used by the CLI call.
-     */
+    /** Used by the CLI call. */
     public static void dbCompact() {
         // ensure mining is disabled
         CfgAion cfg = CfgAion.inst();
@@ -126,9 +127,7 @@ public class RecoveryUtils {
         repository.close();
     }
 
-    /**
-     * Used by the CLI call.
-     */
+    /** Used by the CLI call. */
     public static void dumpBlocks(long count) {
         // ensure mining is disabled
         CfgAion cfg = CfgAion.inst();
@@ -156,9 +155,7 @@ public class RecoveryUtils {
         repository.close();
     }
 
-    /**
-     * Used by internal world state recovery method.
-     */
+    /** Used by internal world state recovery method. */
     public static Status revertTo(IAionBlockchain blockchain, long nbBlock) {
         IBlockStoreBase store = blockchain.getBlockStore();
 
@@ -170,12 +167,15 @@ public class RecoveryUtils {
 
         long nbBestBlock = bestBlock.getNumber();
 
-        System.out.println("Attempting to revert best block from " + nbBestBlock + " to " + nbBlock + " ...");
+        System.out.println(
+                "Attempting to revert best block from " + nbBestBlock + " to " + nbBlock + " ...");
 
         // exit with warning if the given block is larger or negative
         if (nbBlock < 0) {
             System.out.println(
-                    "Negative values <" + nbBlock + "> cannot be interpreted as block numbers. Nothing to do.");
+                    "Negative values <"
+                            + nbBlock
+                            + "> cannot be interpreted as block numbers. Nothing to do.");
             return Status.ILLEGAL_ARGUMENT;
         }
         if (nbBestBlock == 0) {
@@ -184,13 +184,19 @@ public class RecoveryUtils {
         }
         if (nbBlock == nbBestBlock) {
             System.out.println(
-                    "The block " + nbBlock + " is the current best block stored in the database. Nothing to do.");
+                    "The block "
+                            + nbBlock
+                            + " is the current best block stored in the database. Nothing to do.");
             return Status.ILLEGAL_ARGUMENT;
         }
         if (nbBlock > nbBestBlock) {
-            System.out.println("The block #" + nbBlock + " is greater than the current best block #" + nbBestBlock
-                    + " stored in the database. "
-                    + "Cannot move to that block without synchronizing with peers. Start Aion instance to sync.");
+            System.out.println(
+                    "The block #"
+                            + nbBlock
+                            + " is greater than the current best block #"
+                            + nbBestBlock
+                            + " stored in the database. "
+                            + "Cannot move to that block without synchronizing with peers. Start Aion instance to sync.");
             return Status.ILLEGAL_ARGUMENT;
         }
 

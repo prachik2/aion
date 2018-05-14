@@ -3,24 +3,29 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *
  * Aion foundation.
- *
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
 
 package org.aion.p2p.impl.zero.msg;
@@ -30,12 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
  * @author chris
- *
- * 2018-03-07 extends versions, revision
- * protocal version upgrading test
- *
+ *     <p>2018-03-07 extends versions, revision protocal version upgrading test
  */
 public final class ReqHandshake1 extends ReqHandshake {
 
@@ -50,7 +51,6 @@ public final class ReqHandshake1 extends ReqHandshake {
     private static final int MIN_LEN = LEN + 2;
 
     /**
-     *
      * @param _nodeId byte[36]
      * @param _netId int
      * @param _ip byte[8]
@@ -58,27 +58,31 @@ public final class ReqHandshake1 extends ReqHandshake {
      * @param _revision String
      * @param _versions List<byte[2]> header contains 2 byte version
      */
-    public ReqHandshake1(final byte[] _nodeId, int _netId, final byte[] _ip, int _port, final byte[] _revision, final List<Short> _versions) {
+    public ReqHandshake1(
+            final byte[] _nodeId,
+            int _netId,
+            final byte[] _ip,
+            int _port,
+            final byte[] _revision,
+            final List<Short> _versions) {
         super(_nodeId, _netId, _ip, _port);
         this.revision = _revision;
         this.versions = _versions.subList(0, Math.min(MAX_VERSIONS_LEN, _versions.size()));
     }
 
-    public byte[] getRevision(){
+    public byte[] getRevision() {
         return this.revision;
     }
 
     /**
      * @param _bytes byte[]
-     * @return ReqHandshake
-     * decode body
+     * @return ReqHandshake decode body
      */
     public static ReqHandshake1 decode(final byte[] _bytes) {
-        if (_bytes == null || _bytes.length < MIN_LEN)
-            return null;
+        if (_bytes == null || _bytes.length < MIN_LEN) return null;
         else {
 
-            try{
+            try {
                 ByteBuffer buf = ByteBuffer.wrap(_bytes);
 
                 // decode node id
@@ -103,7 +107,7 @@ public final class ReqHandshake1 extends ReqHandshake {
                 // decode versions
                 byte versionsLen = buf.get();
                 List<Short> versions = new ArrayList<>();
-                for(byte i = 0; i < versionsLen; i++){
+                for (byte i = 0; i < versionsLen; i++) {
                     short version = buf.getShort();
                     versions.add(version);
                 }
@@ -118,20 +122,19 @@ public final class ReqHandshake1 extends ReqHandshake {
 
     @Override
     public byte[] encode() {
-        if (this.nodeId.length != 36)
-            return null;
+        if (this.nodeId.length != 36) return null;
         else {
             byte[] superBytes = super.encode();
-            if(superBytes == null)
-                return null;
-            byte revisionLen = (byte)this.revision.length;
-            byte versionsLen = (byte)this.versions.size();
-            ByteBuffer buf = ByteBuffer.allocate(superBytes.length + 1 + revisionLen + 1 + versionsLen * 2);
+            if (superBytes == null) return null;
+            byte revisionLen = (byte) this.revision.length;
+            byte versionsLen = (byte) this.versions.size();
+            ByteBuffer buf =
+                    ByteBuffer.allocate(superBytes.length + 1 + revisionLen + 1 + versionsLen * 2);
             buf.put(superBytes);
             buf.put(revisionLen);
             buf.put(this.revision);
             buf.put(versionsLen);
-            for(Short version : versions){
+            for (Short version : versions) {
                 buf.putShort(version);
             }
             return buf.array();

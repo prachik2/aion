@@ -1,34 +1,38 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *     
- ******************************************************************************/
-
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.zero.impl.tx;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-
 import org.aion.base.type.ITransaction;
 import org.aion.p2p.INode;
 import org.aion.p2p.IP2pMgr;
@@ -41,7 +45,8 @@ import org.aion.zero.impl.sync.msg.BroadcastTx;
 // public abstract class AbstractTxTask<TX extends ITransaction, CHANMGR extends
 // AbstractChanMgr, CHAN extends AbstractChannel> implements Callable<List<TX>>
 // {
-public abstract class AbstractTxTask<TX extends ITransaction, P2P extends IP2pMgr> implements Callable<List<TX>> {
+public abstract class AbstractTxTask<TX extends ITransaction, P2P extends IP2pMgr>
+        implements Callable<List<TX>> {
 
     protected final List<TX> tx;
     protected final P2P p2pMgr;
@@ -56,9 +61,7 @@ public abstract class AbstractTxTask<TX extends ITransaction, P2P extends IP2pMg
         this.p2pMgr = _p2pMgr;
     }
 
-    /**
-     * Class fails silently
-     */
+    /** Class fails silently */
     @SuppressWarnings("unchecked")
     @Override
     public List<TX> call() throws Exception {
@@ -67,7 +70,10 @@ public abstract class AbstractTxTask<TX extends ITransaction, P2P extends IP2pMg
             Map<Integer, INode> activeNodes = this.p2pMgr.getActiveNodes();
             if (activeNodes != null && !activeNodes.isEmpty()) {
                 for (Map.Entry<Integer, INode> e : activeNodes.entrySet()) {
-                    this.p2pMgr.send(e.getKey(), e.getValue().getIdShort(), new BroadcastTx((List<ITransaction>) this.tx));
+                    this.p2pMgr.send(
+                            e.getKey(),
+                            e.getValue().getIdShort(),
+                            new BroadcastTx((List<ITransaction>) this.tx));
                 }
             }
 

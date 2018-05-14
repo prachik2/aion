@@ -1,46 +1,50 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- ******************************************************************************/
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.mcf.config;
 
-import org.aion.base.util.Utils;
-import org.aion.db.impl.DBVendor;
+import static org.aion.db.impl.DatabaseFactory.Props;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
+import org.aion.base.util.Utils;
+import org.aion.db.impl.DBVendor;
 
-import static org.aion.db.impl.DatabaseFactory.Props;
-
-/**
- * @author chris
- */
+/** @author chris */
 public class CfgDb {
 
     public static class Names {
@@ -100,77 +104,86 @@ public class CfgDb {
                         case "check_integrity":
                             this.check_integrity = Boolean.parseBoolean(Cfg.readValue(sr));
                             break;
-                        // parameter considered only when expert==false
+                            // parameter considered only when expert==false
                         case "vendor":
                             this.vendor = Cfg.readValue(sr);
                             break;
-                        // parameter considered only when expert==false
+                            // parameter considered only when expert==false
                         case Props.ENABLE_DB_COMPRESSION:
                             this.compression = Boolean.parseBoolean(Cfg.readValue(sr));
                             break;
-                        // parameter considered only when expert==true
-                        case Names.DEFAULT: {
-                            CfgDbDetails dbConfig = this.specificConfig.get(Names.DEFAULT);
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.DEFAULT, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.BLOCK: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.BLOCK, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.INDEX: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.INDEX, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.DETAILS: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.DETAILS, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.STORAGE: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.STORAGE, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.STATE: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.STATE, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.TRANSACTION: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.TRANSACTION, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.TX_POOL: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.TX_POOL, dbConfig);
-                            break;
-                        }
-                        // parameter considered only when expert==true
-                        case Names.TX_CACHE: {
-                            CfgDbDetails dbConfig = new CfgDbDetails();
-                            dbConfig.fromXML(sr);
-                            this.specificConfig.put(Names.TX_CACHE, dbConfig);
-                            break;
-                        }
+                            // parameter considered only when expert==true
+                        case Names.DEFAULT:
+                            {
+                                CfgDbDetails dbConfig = this.specificConfig.get(Names.DEFAULT);
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.DEFAULT, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.BLOCK:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.BLOCK, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.INDEX:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.INDEX, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.DETAILS:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.DETAILS, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.STORAGE:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.STORAGE, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.STATE:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.STATE, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.TRANSACTION:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.TRANSACTION, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.TX_POOL:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.TX_POOL, dbConfig);
+                                break;
+                            }
+                            // parameter considered only when expert==true
+                        case Names.TX_CACHE:
+                            {
+                                CfgDbDetails dbConfig = new CfgDbDetails();
+                                dbConfig.fromXML(sr);
+                                this.specificConfig.put(Names.TX_CACHE, dbConfig);
+                                break;
+                            }
                         default:
                             Cfg.skipElement(sr);
                             break;
@@ -200,7 +213,8 @@ public class CfgDb {
             xmlWriter.writeEndElement();
 
             xmlWriter.writeCharacters("\r\n\t\t");
-            xmlWriter.writeComment("Boolean value. Enable/disable database integrity check run at startup.");
+            xmlWriter.writeComment(
+                    "Boolean value. Enable/disable database integrity check run at startup.");
             xmlWriter.writeCharacters("\r\n\t\t");
             xmlWriter.writeStartElement("check_integrity");
             xmlWriter.writeCharacters(String.valueOf(this.check_integrity));
@@ -211,7 +225,8 @@ public class CfgDb {
                 xmlWriter.writeComment(
                         "Database implementation used to store data; supported options: leveldb, h2, rocksdb.");
                 xmlWriter.writeCharacters("\r\n\t\t");
-                xmlWriter.writeComment("Caution: changing implementation requires re-syncing from genesis!");
+                xmlWriter.writeComment(
+                        "Caution: changing implementation requires re-syncing from genesis!");
                 xmlWriter.writeCharacters("\r\n\t\t");
                 xmlWriter.writeStartElement("vendor");
                 xmlWriter.writeCharacters(this.vendor);

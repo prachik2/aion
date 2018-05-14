@@ -1,29 +1,37 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *     
- ******************************************************************************/
-
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.zero.impl.blockchain;
 
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Optional;
 import org.aion.base.db.IRepository;
 import org.aion.base.db.IRepositoryCache;
 import org.aion.base.type.Address;
@@ -49,10 +57,6 @@ import org.aion.zero.types.AionTxReceipt;
 import org.aion.zero.types.IAionBlock;
 import org.slf4j.Logger;
 
-import java.math.BigInteger;
-import java.util.List;
-import java.util.Optional;
-
 public class AionImpl implements IAionChain {
 
     private static final Logger LOG_GEN = AionLoggerFactory.getLogger(LogEnum.GEN.toString());
@@ -75,12 +79,17 @@ public class AionImpl implements IAionChain {
     private AionImpl() {
         this.cfg = CfgAion.inst();
         aionHub = new AionHub();
-        LOG_GEN.info("<node-started endpoint=p2p://" + cfg.getId() + "@" + cfg.getNet().getP2p().getIp() + ":"
-                + cfg.getNet().getP2p().getPort() + ">");
+        LOG_GEN.info(
+                "<node-started endpoint=p2p://"
+                        + cfg.getId()
+                        + "@"
+                        + cfg.getNet().getP2p().getIp()
+                        + ":"
+                        + cfg.getNet().getP2p().getPort()
+                        + ">");
 
         collector = new TxCollector(this.aionHub.getP2pMgr(), LOG_TX);
     }
-
 
     @Override
     public IPowChain<AionBlock, A0BlockHeader> getBlockchain() {
@@ -115,15 +124,16 @@ public class AionImpl implements IAionChain {
     }
 
     @Override
-    public AionTransaction createTransaction(BigInteger nonce, Address to, BigInteger value, byte[] data) {
+    public AionTransaction createTransaction(
+            BigInteger nonce, Address to, BigInteger value, byte[] data) {
         byte[] nonceBytes = ByteUtil.bigIntegerToBytes(nonce);
         byte[] valueBytes = ByteUtil.bigIntegerToBytes(value);
         return new AionTransaction(nonceBytes, to, valueBytes, data);
     }
 
     /**
-     * Lock removed, both functions submit to executors, which will enforce
-     * their own parallelism, therefore function is thread safe
+     * Lock removed, both functions submit to executors, which will enforce their own parallelism,
+     * therefore function is thread safe
      */
     @SuppressWarnings("unchecked")
     @Override
@@ -133,7 +143,7 @@ public class AionImpl implements IAionChain {
     }
 
     public void broadcastTransactions(List<AionTransaction> transaction) {
-        for(AionTransaction tx : transaction) {
+        for (AionTransaction tx : transaction) {
             tx.getEncoded();
         }
         collector.submitTx(transaction);
@@ -145,7 +155,8 @@ public class AionImpl implements IAionChain {
             tx.sign(ECKeyFac.inst().fromPrivate(new byte[64]));
         }
 
-        IRepositoryCache repository = aionHub.getRepository().getSnapshotTo(block.getStateRoot()).startTracking();
+        IRepositoryCache repository =
+                aionHub.getRepository().getSnapshotTo(block.getStateRoot()).startTracking();
 
         try {
             TransactionExecutor executor = new TransactionExecutor(tx, block, repository, true);
@@ -155,16 +166,15 @@ public class AionImpl implements IAionChain {
         }
     }
 
-    /**
-     * TODO: pretty sure we can just use a static key, verify and implement
-     */
+    /** TODO: pretty sure we can just use a static key, verify and implement */
     @Override
     public AionTxReceipt callConstant(AionTransaction tx, IAionBlock block) {
         if (tx.getSignature() == null) {
             tx.sign(ECKeyFac.inst().fromPrivate(new byte[64]));
         }
 
-        IRepositoryCache repository = aionHub.getRepository().getSnapshotTo(block.getStateRoot()).startTracking();
+        IRepositoryCache repository =
+                aionHub.getRepository().getSnapshotTo(block.getStateRoot()).startTracking();
 
         try {
             TransactionExecutor executor = new TransactionExecutor(tx, block, repository, true);
@@ -239,17 +249,18 @@ public class AionImpl implements IAionChain {
     }
 
     /**
-     * Returns whether syncing is completed. Note that this implementation is
-     * more of a switch than a guarantee as the syncing system may kick back
-     * into action if the network falls behind.
+     * Returns whether syncing is completed. Note that this implementation is more of a switch than
+     * a guarantee as the syncing system may kick back into action if the network falls behind.
      *
      * @return {@code true} if syncing is completed, {@code false} otherwise
      */
     @Override
     public boolean isSyncComplete() {
         try {
-            long localBestBlockNumber = this.getAionHub().getBlockchain().getBestBlock().getNumber();
-            long networkBestBlockNumber = this.getAionHub().getSyncMgr().getNetworkBestBlockNumber();
+            long localBestBlockNumber =
+                    this.getAionHub().getBlockchain().getBestBlock().getNumber();
+            long networkBestBlockNumber =
+                    this.getAionHub().getSyncMgr().getNetworkBestBlockNumber();
             // to prevent unecessary flopping, consider being within 5 blocks of
             // head to be
             // block propagation and not syncing.
@@ -276,12 +287,16 @@ public class AionImpl implements IAionChain {
     @Override
     public Optional<AccountState> getAccountState(Address address, long blockNumber) {
         try {
-            byte[] stateRoot = this.aionHub.getBlockStore().getChainBlockByNumber(blockNumber).getStateRoot();
-            AccountState account = (AccountState) this.aionHub.getRepository().getSnapshotTo(stateRoot)
-                    .getAccountState(address);
+            byte[] stateRoot =
+                    this.aionHub.getBlockStore().getChainBlockByNumber(blockNumber).getStateRoot();
+            AccountState account =
+                    (AccountState)
+                            this.aionHub
+                                    .getRepository()
+                                    .getSnapshotTo(stateRoot)
+                                    .getAccountState(address);
 
-            if (account == null)
-                return Optional.empty();
+            if (account == null) return Optional.empty();
 
             return Optional.of(account);
         } catch (Exception e) {
@@ -294,12 +309,16 @@ public class AionImpl implements IAionChain {
     @Override
     public Optional<AccountState> getAccountState(Address address, byte[] blockHash) {
         try {
-            byte[] stateRoot = this.aionHub.getBlockchain().getBlockByHash(blockHash).getStateRoot();
-            AccountState account = (AccountState) this.aionHub.getRepository().getSnapshotTo(stateRoot)
-                    .getAccountState(address);
+            byte[] stateRoot =
+                    this.aionHub.getBlockchain().getBlockByHash(blockHash).getStateRoot();
+            AccountState account =
+                    (AccountState)
+                            this.aionHub
+                                    .getRepository()
+                                    .getSnapshotTo(stateRoot)
+                                    .getAccountState(address);
 
-            if (account == null)
-                return Optional.empty();
+            if (account == null) return Optional.empty();
 
             return Optional.of(account);
         } catch (Exception e) {
@@ -312,11 +331,14 @@ public class AionImpl implements IAionChain {
     public Optional<AccountState> getAccountState(Address address) {
         try {
             byte[] stateRoot = this.aionHub.getBlockchain().getBestBlock().getStateRoot();
-            AccountState account = (AccountState) this.aionHub.getRepository().getSnapshotTo(stateRoot)
-                    .getAccountState(address);
+            AccountState account =
+                    (AccountState)
+                            this.aionHub
+                                    .getRepository()
+                                    .getSnapshotTo(stateRoot)
+                                    .getAccountState(address);
 
-            if (account == null)
-                return Optional.empty();
+            if (account == null) return Optional.empty();
 
             return Optional.of(account);
         } catch (Exception e) {
@@ -328,8 +350,7 @@ public class AionImpl implements IAionChain {
     @Override
     public Optional<ByteArrayWrapper> getCode(Address address) {
         byte[] code = this.aionHub.getRepository().getCode(address);
-        if (code == null)
-            return Optional.empty();
+        if (code == null) return Optional.empty();
         return Optional.of(new ByteArrayWrapper(code));
     }
 }

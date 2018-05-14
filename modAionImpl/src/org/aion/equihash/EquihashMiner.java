@@ -1,29 +1,40 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *     
- ******************************************************************************/
-
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.equihash;
 
+import static org.aion.base.util.Hex.toHexString;
+
+import java.util.*;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import org.aion.base.util.MAF;
 import org.aion.evtmgr.IEvent;
 import org.aion.evtmgr.IEventMgr;
@@ -39,20 +50,10 @@ import org.aion.zero.impl.config.CfgAion;
 import org.aion.zero.impl.types.AionBlock;
 import org.aion.zero.types.IAionBlock;
 
-import java.util.*;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
-
-import static org.aion.base.util.Hex.toHexString;
-
-/**
- * @author Ross Kitsis (ross@nuco.io)
- */
-
+/** @author Ross Kitsis (ross@nuco.io) */
 public class EquihashMiner extends AbstractMineRunner<AionBlock> {
 
-    public final static String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.0";
 
     private IAionChain a0Chain;
 
@@ -78,26 +79,26 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
 
     private EventExecuteService ees;
 
-    /**
-     * Miner threads
-     */
+    /** Miner threads */
     private List<Thread> threads = new ArrayList<>();
 
     private final class EpMiner implements Runnable {
         boolean go = true;
+
         @Override
         public void run() {
             while (go) {
                 IEvent e = ees.take();
-                if (e.getEventType() == IHandler.TYPE.CONSENSUS.getValue() && e.getCallbackType() == EventConsensus.CALLBACK.ON_BLOCK_TEMPLATE.getValue()) {
+                if (e.getEventType() == IHandler.TYPE.CONSENSUS.getValue()
+                        && e.getCallbackType()
+                                == EventConsensus.CALLBACK.ON_BLOCK_TEMPLATE.getValue()) {
                     EquihashMiner.this.onBlockTemplate((AionBlock) e.getFuncArgs().get(0));
-                } else if (e.getEventType() == IHandler.TYPE.POISONPILL.getValue()){
+                } else if (e.getEventType() == IHandler.TYPE.POISONPILL.getValue()) {
                     go = false;
                 }
             }
         }
     }
-
 
     private static class Holder {
         static final EquihashMiner INSTANCE = new EquihashMiner();
@@ -112,9 +113,7 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
         return Holder.INSTANCE;
     }
 
-    /**
-     * Private constructor; called by singleton instance once
-     */
+    /** Private constructor; called by singleton instance once */
     private EquihashMiner() {
         this.cfg = CfgAion.inst();
 
@@ -157,7 +156,10 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
             fireMinerStarted();
             LOG.info("sealer starting 🔒 {" + cpuThreads + "}");
 
-            scheduledWorkers.scheduleWithFixedDelay(new ShowMiningStatusTask(), STATUS_INTERVAL * 2, STATUS_INTERVAL,
+            scheduledWorkers.scheduleWithFixedDelay(
+                    new ShowMiningStatusTask(),
+                    STATUS_INTERVAL * 2,
+                    STATUS_INTERVAL,
                     TimeUnit.SECONDS);
 
             for (int i = 0; i < cpuThreads; i++) {
@@ -196,13 +198,10 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
                     LOG.error("Failed to stop sealer thread");
                 }
             }
-
         }
     }
 
-    /**
-     * Keeps mining until the thread is interrupted
-     */
+    /** Keeps mining until the thread is interrupted */
     protected void mine() {
         IAionBlock block;
         byte[] nonce;
@@ -231,9 +230,7 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
         }
     }
 
-    /**
-     * Restart the mining process when a new block template is received.
-     */
+    /** Restart the mining process when a new block template is received. */
     protected void onBlockTemplate(AionBlock block) {
         if (LOG.isDebugEnabled()) {
             LOG.debug("onBlockTemplate(): {}", toHexString(block.getHash()));
@@ -248,31 +245,29 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
     /**
      * Start block mining after sec seconds
      *
-     * @param sec
-     *            The number of seconds to wait until beginning to mine blocks
+     * @param sec The number of seconds to wait until beginning to mine blocks
      */
     @Override
     public void delayedStartMining(int sec) {
         if (cfg.getConsensus().getMining()) {
             LOG.info("<delayed-start-sealing>");
             Timer t = new Timer();
-            t.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    if (cfg.getConsensus().getMining()) {
-                        startMining();
-                    }
-                }
-            }, sec * 1000);
+            t.schedule(
+                    new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (cfg.getConsensus().getMining()) {
+                                startMining();
+                            }
+                        }
+                    },
+                    sec * 1000);
         } else {
             LOG.info("<sealing-disabled>");
         }
     }
 
-    /**
-     * This miner will listen to the ON_BLOCK_TEMPLATE event from the consensus
-     * handler.
-     */
+    /** This miner will listen to the ON_BLOCK_TEMPLATE event from the consensus handler. */
     public void registerCallback() {
         // Only register events if actual mining
         if (cfg.getConsensus().getMining()) {
@@ -287,9 +282,7 @@ public class EquihashMiner extends AbstractMineRunner<AionBlock> {
         }
     }
 
-    /**
-     * Register miner events.
-     */
+    /** Register miner events. */
     public void registerMinerEvents() {
         List<IEvent> evts = new ArrayList<>();
         evts.add(new EventMiner(EventMiner.CALLBACK.MININGSTARTED));

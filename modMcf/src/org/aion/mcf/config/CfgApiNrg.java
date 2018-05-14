@@ -1,40 +1,44 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
- ******************************************************************************/
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.mcf.config;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.XMLStreamWriter;
 
-/**
- * @author ali sharif
- */
+/** @author ali sharif */
 public final class CfgApiNrg {
     private long defaultPrice;
     private long maxPrice;
@@ -42,7 +46,8 @@ public final class CfgApiNrg {
     private boolean oracleEnabled;
 
     CfgApiNrg() {
-        // recommend setting the defaultPrice to a safe-low known nrg price accepted by most miners on the network
+        // recommend setting the defaultPrice to a safe-low known nrg price accepted by most miners
+        // on the network
         // (this value fluctuates over time, depending on network conditions)
         this.defaultPrice = 10_000_000_000L; // 10E9 AION
         this.maxPrice = 100_000_000_000L; // 100E9 AION
@@ -52,10 +57,14 @@ public final class CfgApiNrg {
     public long getNrgPriceDefault() {
         return this.defaultPrice;
     }
+
     public long getNrgPriceMax() {
         return this.maxPrice;
     }
-    public boolean isOracleEnabled() { return this.oracleEnabled; }
+
+    public boolean isOracleEnabled() {
+        return this.oracleEnabled;
+    }
 
     public void fromXML(final XMLStreamReader sr) throws XMLStreamException {
         loop:
@@ -69,16 +78,22 @@ public final class CfgApiNrg {
                             try {
                                 oracleEnabled = Boolean.parseBoolean(Cfg.readValue(sr));
                             } catch (Exception e) {
-                                System.out.println("failed to read config node: aion.api.nrg.enable; using preset: " + this.oracleEnabled);
+                                System.out.println(
+                                        "failed to read config node: aion.api.nrg.enable; using preset: "
+                                                + this.oracleEnabled);
                                 e.printStackTrace();
                             }
                             break;
                         case "default":
                             try {
-                                // using BigDecimal here only because of [BigDecimal -> String -> BigDecimal] preservation property
+                                // using BigDecimal here only because of [BigDecimal -> String ->
+                                // BigDecimal] preservation property
                                 defaultPrice = (new BigDecimal(Cfg.readValue(sr))).longValueExact();
                             } catch (Exception e) {
-                                System.out.println("failed to read config node: aion.api.nrg.default; using preset: " + new BigDecimal(defaultPrice).toEngineeringString());
+                                System.out.println(
+                                        "failed to read config node: aion.api.nrg.default; using preset: "
+                                                + new BigDecimal(defaultPrice)
+                                                        .toEngineeringString());
                                 e.printStackTrace();
                             }
                             break;
@@ -86,7 +101,9 @@ public final class CfgApiNrg {
                             try {
                                 maxPrice = (new BigDecimal(Cfg.readValue(sr))).longValueExact();
                             } catch (Exception e) {
-                                System.out.println("failed to read config node: aion.api.nrg.maxPrice; using preset: " + new BigDecimal(maxPrice).toEngineeringString());
+                                System.out.println(
+                                        "failed to read config node: aion.api.nrg.maxPrice; using preset: "
+                                                + new BigDecimal(maxPrice).toEngineeringString());
                                 e.printStackTrace();
                             }
                             break;
@@ -120,7 +137,8 @@ public final class CfgApiNrg {
              */
 
             xmlWriter.writeCharacters("\r\n\t\t\t");
-            xmlWriter.writeComment("default NRG price used by api if oracle disabled, minimum price recommended by oracle");
+            xmlWriter.writeComment(
+                    "default NRG price used by api if oracle disabled, minimum price recommended by oracle");
             xmlWriter.writeCharacters("\r\n\t\t\t");
             xmlWriter.writeStartElement("default");
             xmlWriter.writeCharacters((new BigDecimal(defaultPrice)).toString());
@@ -134,7 +152,8 @@ public final class CfgApiNrg {
             xmlWriter.writeEndElement();
 
             xmlWriter.writeCharacters("\r\n\t\t\t");
-            xmlWriter.writeComment("enable/diable nrg-oracle service. if disabled, api returns default NRG price if asked for nrgPrice");
+            xmlWriter.writeComment(
+                    "enable/diable nrg-oracle service. if disabled, api returns default NRG price if asked for nrgPrice");
             xmlWriter.writeCharacters("\r\n\t\t\t");
             xmlWriter.writeStartElement("oracle-enabled");
             xmlWriter.writeCharacters(String.valueOf(this.oracleEnabled));

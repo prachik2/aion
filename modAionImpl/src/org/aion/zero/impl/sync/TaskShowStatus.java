@@ -3,40 +3,40 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * The aion network project leverages useful source code from other
- * open source projects. We greatly appreciate the effort that was
- * invested in these projects and we thank the individual contributors
- * for their work. For provenance information and contributors
- * please see <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
  * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
 package org.aion.zero.impl.sync;
-
-import org.aion.base.util.Hex;
-import org.aion.zero.impl.AionBlockchainImpl;
-import org.aion.zero.impl.types.AionBlock;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.aion.base.util.Hex;
+import org.aion.zero.impl.AionBlockchainImpl;
+import org.aion.zero.impl.types.AionBlock;
+import org.slf4j.Logger;
 
 /**
  * The thread print out sync status
@@ -60,9 +60,15 @@ final class TaskShowStatus implements Runnable {
     private final boolean printReport;
     private final String reportFolder;
 
-    TaskShowStatus(final AtomicBoolean _start, int _interval, final AionBlockchainImpl _chain,
-            final NetworkStatus _networkStatus, final SyncStatics _statics, final Logger _log,
-            final boolean _printReport, final String _reportFolder) {
+    TaskShowStatus(
+            final AtomicBoolean _start,
+            int _interval,
+            final AionBlockchainImpl _chain,
+            final NetworkStatus _networkStatus,
+            final SyncStatics _statics,
+            final Logger _log,
+            final boolean _printReport,
+            final String _reportFolder) {
         this.start = _start;
         this.interval = _interval;
         this.chain = _chain;
@@ -80,12 +86,23 @@ final class TaskShowStatus implements Runnable {
             AionBlock selfBest = this.chain.getBestBlock();
             String selfTd = this.chain.getTotalDifficulty().toString(10);
 
-            String status = "<sync-status avg-import=" + String.format("%.2f", this.statics.getAvgBlocksPerSec()) //
-                    + " b/s" //
-                    + " td=" + selfTd + "/" + networkStatus.getTargetTotalDiff().toString(10) //
-                    + " b-num=" + selfBest.getNumber() + "/" + this.networkStatus.getTargetBestBlockNumber() //
-                    + " b-hash=" + Hex.toHexString(this.chain.getBestBlockHash()) //
-                    + "/" + this.networkStatus.getTargetBestBlockHash() + ">";
+            String status =
+                    "<sync-status avg-import="
+                            + String.format("%.2f", this.statics.getAvgBlocksPerSec()) //
+                            + " b/s" //
+                            + " td="
+                            + selfTd
+                            + "/"
+                            + networkStatus.getTargetTotalDiff().toString(10) //
+                            + " b-num="
+                            + selfBest.getNumber()
+                            + "/"
+                            + this.networkStatus.getTargetBestBlockNumber() //
+                            + " b-hash="
+                            + Hex.toHexString(this.chain.getBestBlockHash()) //
+                            + "/"
+                            + this.networkStatus.getTargetBestBlockHash()
+                            + ">";
 
             // print to std output
             // thread to dump sync status enabled by sync mgr
@@ -94,7 +111,9 @@ final class TaskShowStatus implements Runnable {
             // print to report file
             if (printReport) {
                 try {
-                    Files.write(Paths.get(reportFolder, System.currentTimeMillis() + "-sync-report.out"),
+                    Files.write(
+                            Paths.get(
+                                    reportFolder, System.currentTimeMillis() + "-sync-report.out"),
                             status.getBytes());
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -104,10 +123,14 @@ final class TaskShowStatus implements Runnable {
             try {
                 Thread.sleep(interval);
             } catch (InterruptedException e) {
-                if (log.isDebugEnabled()) { log.debug("<sync-ss shutdown>"); }
+                if (log.isDebugEnabled()) {
+                    log.debug("<sync-ss shutdown>");
+                }
                 return;
             }
         }
-        if (log.isDebugEnabled()) { log.debug("<sync-ss shutdown>"); }
+        if (log.isDebugEnabled()) {
+            log.debug("<sync-ss shutdown>");
+        }
     }
 }

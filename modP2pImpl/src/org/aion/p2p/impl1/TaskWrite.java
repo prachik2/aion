@@ -3,38 +3,41 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *
  * Aion foundation.
- *
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
 
 package org.aion.p2p.impl1;
 
-import org.aion.p2p.Header;
-import org.aion.p2p.Msg;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
+import org.aion.p2p.Header;
+import org.aion.p2p.Msg;
 
-/**
- * @author chris
- */
+/** @author chris */
 public class TaskWrite implements Runnable {
 
     private boolean showLog;
@@ -44,7 +47,13 @@ public class TaskWrite implements Runnable {
     private ChannelBuffer channelBuffer;
     private P2pMgr p2pMgr;
 
-    TaskWrite(boolean _showLog, String _nodeShortId, final SocketChannel _sc, final Msg _msg, final ChannelBuffer _cb, final P2pMgr _p2pMgr) {
+    TaskWrite(
+            boolean _showLog,
+            String _nodeShortId,
+            final SocketChannel _sc,
+            final Msg _msg,
+            final ChannelBuffer _cb,
+            final P2pMgr _p2pMgr) {
         this.showLog = _showLog;
         this.nodeShortId = _nodeShortId;
         this.sc = _sc;
@@ -79,26 +88,31 @@ public class TaskWrite implements Runnable {
             // System.out.println("write " + h.getVer() + "-" + h.getCtrl() + "-" + h.getAction());
             ByteBuffer buf = ByteBuffer.allocate(headerBytes.length + bodyLen);
             buf.put(headerBytes);
-            if (bodyBytes != null)
-                buf.put(bodyBytes);
+            if (bodyBytes != null) buf.put(bodyBytes);
             buf.flip();
 
             try {
                 while (buf.hasRemaining()) {
-                    // @Attention:  very important sleep , otherwise when NIO write buffer full, 
+                    // @Attention:  very important sleep , otherwise when NIO write buffer full,
                     // without sleep will hangup this thread.
                     Thread.sleep(0, 1);
                     sc.write(buf);
                 }
             } catch (ClosedChannelException ex1) {
                 if (showLog) {
-                    System.out.println("<p2p closed-channel-exception node=" + this.nodeShortId + ">");
+                    System.out.println(
+                            "<p2p closed-channel-exception node=" + this.nodeShortId + ">");
                 }
                 channelBuffer.isClosed.set(true);
             } catch (IOException ex2) {
                 String reason = ex2.getMessage();
                 if (showLog) {
-                    System.out.println("<p2p write-msg-io-exception node=" + this.nodeShortId + " err=" + ex2.getMessage() + ">");
+                    System.out.println(
+                            "<p2p write-msg-io-exception node="
+                                    + this.nodeShortId
+                                    + " err="
+                                    + ex2.getMessage()
+                                    + ">");
                 }
                 if (reason.equals("Broken pipe")) {
                     channelBuffer.isClosed.set(true);

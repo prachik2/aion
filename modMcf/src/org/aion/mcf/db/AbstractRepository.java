@@ -1,24 +1,32 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017, 2018 Aion foundation.
+ * This file is part of the aion network project.
  *
- * 	This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *******************************************************************************/
-
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.mcf.db;
 
 import static org.aion.db.impl.DatabaseFactory.Props;
@@ -46,13 +54,14 @@ import org.aion.mcf.types.AbstractBlock;
 import org.aion.mcf.vm.types.DataWord;
 import org.slf4j.Logger;
 
-//import org.aion.dbmgr.exception.DriverManagerNoSuitableDriverRegisteredException;
+// import org.aion.dbmgr.exception.DriverManagerNoSuitableDriverRegisteredException;
 // import org.aion.mcf.trie.JournalPruneDataSource;
 
-/**
- * Abstract Repository class.
- */
-public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends ITransaction>, BH extends IBlockHeader, BSB extends IBlockStoreBase<?, ?>>
+/** Abstract Repository class. */
+public abstract class AbstractRepository<
+                BLK extends AbstractBlock<BH, ? extends ITransaction>,
+                BH extends IBlockHeader,
+                BSB extends IBlockStoreBase<?, ?>>
         implements IRepository<AccountState, DataWord, BSB> {
 
     // Logger
@@ -62,9 +71,9 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
     // Configuration parameter
     protected IRepositoryConfig cfg;
 
-    /*********** Database Name Constants ***********/
-
+    /** ********* Database Name Constants ********** */
     protected static final String TRANSACTION_DB = CfgDb.Names.TRANSACTION;
+
     protected static final String INDEX_DB = CfgDb.Names.INDEX;
     protected static final String BLOCK_DB = CfgDb.Names.BLOCK;
     protected static final String DETAILS_DB = CfgDb.Names.DETAILS;
@@ -80,9 +89,9 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
     // protected final static String DB_PATH = new
     // File(System.getProperty("user.dir"), "database").getAbsolutePath();
 
-    /********** Database and Cache parameters **************/
-
+    /** ******** Database and Cache parameters ************* */
     protected IByteArrayKeyValueDatabase transactionDatabase;
+
     protected IByteArrayKeyValueDatabase detailsDatabase;
     protected IByteArrayKeyValueDatabase storageDatabase;
     protected IByteArrayKeyValueDatabase indexDatabase;
@@ -124,18 +133,18 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
          * on startup, enforce conditions here for safety
          */
         Objects.requireNonNull(this.cfg);
-//        Objects.requireNonNull(this.cfg.getVendorList());
-//        Objects.requireNonNull(this.cfg.getActiveVendor());
+        //        Objects.requireNonNull(this.cfg.getVendorList());
+        //        Objects.requireNonNull(this.cfg.getActiveVendor());
 
-//        /**
-//         * TODO: this is hack There should be some information on the
-//         * persistence of the DB so that we do not have to manually check.
-//         * Currently this information exists within
-//         * {@link DBVendor#getPersistence()}, but is not utilized.
-//         */
-//        if (this.cfg.getActiveVendor().equals(DBVendor.MOCKDB.toValue())) {
-//            LOG.warn("WARNING: Active vendor is set to MockDB, data will not persist");
-//        } else {
+        //        /**
+        //         * TODO: this is hack There should be some information on the
+        //         * persistence of the DB so that we do not have to manually check.
+        //         * Currently this information exists within
+        //         * {@link DBVendor#getPersistence()}, but is not utilized.
+        //         */
+        //        if (this.cfg.getActiveVendor().equals(DBVendor.MOCKDB.toValue())) {
+        //            LOG.warn("WARNING: Active vendor is set to MockDB, data will not persist");
+        //        } else {
         // verify user-provided path
         File f = new File(this.cfg.getDbPath());
         try {
@@ -147,22 +156,27 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
                 f.mkdirs();
             }
         } catch (Exception e) {
-            throw new InvalidFilePathException("Resolved file path \"" + this.cfg.getDbPath()
-                                                       + "\" not valid as reported by the OS or a read/write permissions error occurred. Please provide an alternative DB file path in /config/config.xml.");
+            throw new InvalidFilePathException(
+                    "Resolved file path \""
+                            + this.cfg.getDbPath()
+                            + "\" not valid as reported by the OS or a read/write permissions error occurred. Please provide an alternative DB file path in /config/config.xml.");
         }
-//        }
-//
-//        if (!Arrays.asList(this.cfg.getVendorList()).contains(this.cfg.getActiveVendor())) {
-//
-//            ArrayList<String> vendorListString = new ArrayList<>();
-//            for (String v : this.cfg.getVendorList()) {
-//                vendorListString.add("\"" + v + "\"");
-//            }
-//            throw new DriverManagerNoSuitableDriverRegisteredException(
-//                    "Please check the vendor name field in /config/config.xml.\n"
-//                            + "No suitable driver found with name \"" + this.cfg.getActiveVendor()
-//                            + "\".\nPlease select a driver from the following vendor list: " + vendorListString);
-//        }
+        //        }
+        //
+        //        if (!Arrays.asList(this.cfg.getVendorList()).contains(this.cfg.getActiveVendor()))
+        // {
+        //
+        //            ArrayList<String> vendorListString = new ArrayList<>();
+        //            for (String v : this.cfg.getVendorList()) {
+        //                vendorListString.add("\"" + v + "\"");
+        //            }
+        //            throw new DriverManagerNoSuitableDriverRegisteredException(
+        //                    "Please check the vendor name field in /config/config.xml.\n"
+        //                            + "No suitable driver found with name \"" +
+        // this.cfg.getActiveVendor()
+        //                            + "\".\nPlease select a driver from the following vendor list:
+        // " + vendorListString);
+        //        }
 
         Properties sharedProps;
 
@@ -170,8 +184,10 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
         try {
             databaseGroup = new ArrayList<>();
 
-            checkIntegrity = Boolean
-                    .valueOf(cfg.getDatabaseConfig(CfgDb.Names.DEFAULT).getProperty(Props.CHECK_INTEGRITY));
+            checkIntegrity =
+                    Boolean.valueOf(
+                            cfg.getDatabaseConfig(CfgDb.Names.DEFAULT)
+                                    .getProperty(Props.CHECK_INTEGRITY));
 
             // getting state specific properties
             sharedProps = cfg.getDatabaseConfig(STATE_DB);
@@ -268,9 +284,10 @@ public abstract class AbstractRepository<BLK extends AbstractBlock<BH, ? extends
 
         // check persistence status
         if (!db.isCreatedOnDisk()) {
-            LOG.error("Database <{}> cannot be saved to disk for <{}>.",
-                      info.getProperty(Props.DB_TYPE),
-                      info.getProperty(Props.DB_NAME));
+            LOG.error(
+                    "Database <{}> cannot be saved to disk for <{}>.",
+                    info.getProperty(Props.DB_TYPE),
+                    info.getProperty(Props.DB_NAME));
         }
 
         return db;

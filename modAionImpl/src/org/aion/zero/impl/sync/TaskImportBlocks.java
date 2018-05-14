@@ -3,32 +3,37 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * The aion network project leverages useful source code from other
- * open source projects. We greatly appreciate the effort that was
- * invested in these projects and we thank the individual contributors
- * for their work. For provenance information and contributors
- * please see <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
  * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
-
 package org.aion.zero.impl.sync;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 import org.aion.base.util.ByteArrayWrapper;
 import org.aion.mcf.core.ImportResult;
 import org.aion.p2p.IP2pMgr;
@@ -36,17 +41,7 @@ import org.aion.zero.impl.AionBlockchainImpl;
 import org.aion.zero.impl.types.AionBlock;
 import org.slf4j.Logger;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
-/**
- * @author chris
- * handle process of importing blocks to repo
- * TODO: targeted send
- */
+/** @author chris handle process of importing blocks to repo TODO: targeted send */
 final class TaskImportBlocks implements Runnable {
 
     private final IP2pMgr p2p;
@@ -73,8 +68,7 @@ final class TaskImportBlocks implements Runnable {
             final BlockingQueue<BlocksWrapper> downloadedBlocks,
             final Map<ByteArrayWrapper, Object> importedBlockHashes,
             final Map<Integer, PeerState> peerStates,
-            final Logger log
-    ) {
+            final Logger log) {
         this.p2p = p2p;
         this.chain = _chain;
         this.start = _start;
@@ -97,13 +91,20 @@ final class TaskImportBlocks implements Runnable {
                 return;
             }
 
-            List<AionBlock> batch = bw.getBlocks().stream()
-                    .filter(b -> importedBlockHashes.get(ByteArrayWrapper.wrap(b.getHash())) == null)
-                    .collect(Collectors.toList());
+            List<AionBlock> batch =
+                    bw.getBlocks()
+                            .stream()
+                            .filter(
+                                    b ->
+                                            importedBlockHashes.get(
+                                                            ByteArrayWrapper.wrap(b.getHash()))
+                                                    == null)
+                            .collect(Collectors.toList());
 
             PeerState state = peerStates.get(bw.getNodeIdHash());
             if (state == null) {
-                log.warn("This is not supposed to happen, but the peer is sending us blocks without ask");
+                log.warn(
+                        "This is not supposed to happen, but the peer is sending us blocks without ask");
             }
 
             for (AionBlock b : batch) {
@@ -113,14 +114,16 @@ final class TaskImportBlocks implements Runnable {
                     importResult = this.chain.tryToConnect(b);
                 } catch (Throwable e) {
                     log.error("<import-block throw> {}", e.toString());
-                    if (e.getMessage() != null && e.getMessage().contains("No space left on device")) {
+                    if (e.getMessage() != null
+                            && e.getMessage().contains("No space left on device")) {
                         log.error("Shutdown due to lack of disk space.");
                         System.exit(0);
                     }
                     continue;
                 }
                 long t2 = System.currentTimeMillis();
-                log.info("<import-status: node = {}, hash = {}, number = {}, txs = {}, result = {}, time elapsed = {} ms>",
+                log.info(
+                        "<import-status: node = {}, hash = {}, number = {}, txs = {}, result = {}, time elapsed = {} ms>",
                         bw.getDisplayId(),
                         b.getShortHash(),
                         b.getNumber(),

@@ -1,39 +1,37 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2017-2018 Aion foundation.
  *
- *     This file is part of the aion network project.
+ * This file is part of the aion network project.
  *
- *     The aion network project is free software: you can redistribute it
- *     and/or modify it under the terms of the GNU General Public License
- *     as published by the Free Software Foundation, either version 3 of
- *     the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     The aion network project is distributed in the hope that it will
- *     be useful, but WITHOUT ANY WARRANTY; without even the implied
- *     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *     See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with the aion network project source files.
- *     If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- *     The aion network project leverages useful source code from other
- *     open source projects. We greatly appreciate the effort that was
- *     invested in these projects and we thank the individual contributors
- *     for their work. For provenance information and contributors
- *     please see <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *     Aion foundation.
- *     <ether.camp> team through the ethereumJ library.
- *     Ether.Camp Inc. (US) team through Ethereum Harmony.
- *     John Tromp through the Equihash solver.
- *     Samuel Neves through the BLAKE2 implementation.
- *     Zcash project team.
- *     Bitcoinj team.
- ******************************************************************************/
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.zero.impl;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.util.*;
 import org.aion.base.db.IByteArrayKeyValueDatabase;
 import org.aion.base.util.ByteUtil;
 import org.aion.base.util.Hex;
@@ -45,15 +43,9 @@ import org.aion.zero.impl.types.AionBlock;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.*;
-
-import static com.google.common.truth.Truth.assertThat;
-
 // import org.aion.mcf.trie.JournalPruneDataSource;
 
-/**
- * @author Alexandra Roatis
- */
+/** @author Alexandra Roatis */
 public class BlockchainDataRecoveryTest {
 
     @BeforeClass
@@ -66,9 +58,7 @@ public class BlockchainDataRecoveryTest {
         AionLoggerFactory.init(cfg);
     }
 
-    /**
-     * Test the recovery of the world state with start from the state of an ancestor block.
-     */
+    /** Test the recovery of the world state with start from the state of an ancestor block. */
     @Test
     public void testRecoverWorldStateWithPartialWorldState() {
         final int NUMBER_OF_BLOCKS = 6;
@@ -82,14 +72,18 @@ public class BlockchainDataRecoveryTest {
         // first half of blocks will be correct
         ImportResult result;
         for (int i = 0; i < NUMBER_OF_BLOCKS / 2; i++) {
-            result = chain.tryToConnect(chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true));
+            result =
+                    chain.tryToConnect(
+                            chain.createNewBlock(
+                                    chain.getBestBlock(), Collections.emptyList(), true));
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
         }
 
         // second half of blocks will miss the state root
         List<byte[]> statesToDelete = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_BLOCKS / 2; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
             statesToDelete.add(next.getStateRoot());
@@ -122,9 +116,7 @@ public class BlockchainDataRecoveryTest {
         assertThat(trie.isValidRoot(chain.getBestBlock().getStateRoot())).isTrue();
     }
 
-    /**
-     * Test the recovery of the world state with start from the state of the genesis block.
-     */
+    /** Test the recovery of the world state with start from the state of the genesis block. */
     @Test
     public void testRecoverWorldStateWithStartFromGenesis() {
         final int NUMBER_OF_BLOCKS = 10;
@@ -139,7 +131,8 @@ public class BlockchainDataRecoveryTest {
         ImportResult result;
         List<byte[]> statesToDelete = new ArrayList<>();
         for (int i = 0; i < NUMBER_OF_BLOCKS; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
             statesToDelete.add(next.getStateRoot());
@@ -177,7 +170,7 @@ public class BlockchainDataRecoveryTest {
     /**
      * Test the recovery of the world state when missing the genesis block state.
      *
-     * Under these circumstances the recovery will fail.
+     * <p>Under these circumstances the recovery will fail.
      */
     @Test
     public void testRecoverWorldStateWithoutGenesis() {
@@ -192,7 +185,8 @@ public class BlockchainDataRecoveryTest {
         // all blocks will be incorrect
         ImportResult result;
         for (int i = 0; i < NUMBER_OF_BLOCKS; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
         }
@@ -227,9 +221,7 @@ public class BlockchainDataRecoveryTest {
         assertThat(trie.isValidRoot(chain.getBestBlock().getStateRoot())).isFalse();
     }
 
-    /**
-     * Test the recovery of the index with start from the index of an ancestor block.
-     */
+    /** Test the recovery of the index with start from the index of an ancestor block. */
     @Test
     public void testRecoverIndexWithPartialIndex_MainChain() {
         final int NUMBER_OF_BLOCKS = 6;
@@ -243,14 +235,18 @@ public class BlockchainDataRecoveryTest {
         // first half of blocks will be correct
         ImportResult result;
         for (int i = 0; i < NUMBER_OF_BLOCKS / 2; i++) {
-            result = chain.tryToConnect(chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true));
+            result =
+                    chain.tryToConnect(
+                            chain.createNewBlock(
+                                    chain.getBestBlock(), Collections.emptyList(), true));
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
         }
 
         // second half of blocks will miss the index
         Map<Long, byte[]> blocksToDelete = new HashMap<>();
         for (int i = 0; i < NUMBER_OF_BLOCKS / 2; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
             blocksToDelete.put(next.getNumber(), next.getHash());
@@ -305,9 +301,7 @@ public class BlockchainDataRecoveryTest {
         assertThat(indexDatabase.get(sizeKey).isPresent()).isTrue();
     }
 
-    /**
-     * Test the recovery of the index with start from the index of an ancestor block.
-     */
+    /** Test the recovery of the index with start from the index of an ancestor block. */
     @Test
     public void testRecoverIndexWithPartialIndex_ShorterSideChain() {
         // should be even number
@@ -322,7 +316,10 @@ public class BlockchainDataRecoveryTest {
         // adding common blocks
         ImportResult result;
         for (int i = 0; i < NUMBER_OF_BLOCKS / 2 - 1; i++) {
-            result = chain.tryToConnect(chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true));
+            result =
+                    chain.tryToConnect(
+                            chain.createNewBlock(
+                                    chain.getBestBlock(), Collections.emptyList(), true));
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
         }
 
@@ -388,8 +385,10 @@ public class BlockchainDataRecoveryTest {
         }
 
         // call the recovery functionality for the main chain subsection
-        boolean worked = chain
-                .recoverIndexEntry(chain.getRepository(), chain.getBlockByHash(mainChainBlock.getParentHash()));
+        boolean worked =
+                chain.recoverIndexEntry(
+                        chain.getRepository(),
+                        chain.getBlockByHash(mainChainBlock.getParentHash()));
 
         // ensure that the index was corrupted only for the side chain
         assertThat(repo.isIndexed(sideChainBlock.getHash(), sideChainBlock.getNumber())).isFalse();
@@ -422,9 +421,7 @@ public class BlockchainDataRecoveryTest {
         assertThat(indexDatabase.get(sizeKey).isPresent()).isTrue();
     }
 
-    /**
-     * Test the index recovery when the index database contains only the size and genesis index.
-     */
+    /** Test the index recovery when the index database contains only the size and genesis index. */
     @Test
     public void testRecoverIndexWithStartFromGenesis() {
         final int NUMBER_OF_BLOCKS = 3;
@@ -439,7 +436,8 @@ public class BlockchainDataRecoveryTest {
         ImportResult result;
         Map<Long, byte[]> blocksToDelete = new HashMap<>();
         for (int i = 0; i < NUMBER_OF_BLOCKS; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
             blocksToDelete.put(next.getNumber(), next.getHash());
@@ -497,7 +495,7 @@ public class BlockchainDataRecoveryTest {
     /**
      * Test the index recovery when the index database is empty.
      *
-     * Under these circumstances the recovery process will fail.
+     * <p>Under these circumstances the recovery process will fail.
      */
     @Test
     public void testRecoverIndexWithoutGenesis() {
@@ -511,7 +509,8 @@ public class BlockchainDataRecoveryTest {
 
         ImportResult result;
         for (int i = 0; i < NUMBER_OF_BLOCKS; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
         }
@@ -541,7 +540,8 @@ public class BlockchainDataRecoveryTest {
     }
 
     /**
-     * Test the index recovery when the index database contains only the genesis index and is missing the size key.
+     * Test the index recovery when the index database contains only the genesis index and is
+     * missing the size key.
      */
     @Test
     public void testRecoverIndexWithStartFromGenesisWithoutSize() {
@@ -557,7 +557,8 @@ public class BlockchainDataRecoveryTest {
         ImportResult result;
         Map<Long, byte[]> blocksToDelete = new HashMap<>();
         for (int i = 0; i < NUMBER_OF_BLOCKS; i++) {
-            AionBlock next = chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
+            AionBlock next =
+                    chain.createNewBlock(chain.getBestBlock(), Collections.emptyList(), true);
             result = chain.tryToConnect(next);
             assertThat(result).isEqualTo(ImportResult.IMPORTED_BEST);
             blocksToDelete.put(next.getNumber(), next.getHash());

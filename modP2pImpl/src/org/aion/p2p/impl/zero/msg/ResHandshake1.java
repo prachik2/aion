@@ -3,24 +3,29 @@
  *
  * This file is part of the aion network project.
  *
- * The aion network project is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- * The aion network project is distributed in the hope that it will
- * be useful, but WITHOUT ANY WARRANTY; without even the implied
- * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with the aion network project source files.
- * If not, see <https://www.gnu.org/licenses/>.
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
  *
  * Contributors to the aion source files in decreasing order of code volume:
- *
  * Aion foundation.
- *
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
  */
 
 package org.aion.p2p.impl.zero.msg;
@@ -29,11 +34,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-/**
- *
- * @author chris
- *
- */
+/** @author chris */
 public final class ResHandshake1 extends ResHandshake {
 
     // success(byte) + binary version len (byte)
@@ -44,7 +45,8 @@ public final class ResHandshake1 extends ResHandshake {
     public ResHandshake1(boolean _success, String _binaryVersion) {
         super(_success);
         // utf-8
-        this.binaryVersion = _binaryVersion.length() > 63 ? _binaryVersion.substring(0, 62) : _binaryVersion;
+        this.binaryVersion =
+                _binaryVersion.length() > 63 ? _binaryVersion.substring(0, 62) : _binaryVersion;
     }
 
     public String getBinaryVersion() {
@@ -52,11 +54,10 @@ public final class ResHandshake1 extends ResHandshake {
     }
 
     public static ResHandshake1 decode(final byte[] _bytes) {
-        if (_bytes == null || _bytes.length < MIN_LEN)
-            return null;
+        if (_bytes == null || _bytes.length < MIN_LEN) return null;
         else {
 
-            try{
+            try {
 
                 // decode success
                 boolean success = _bytes[0] == 0x00 ? false : true;
@@ -65,9 +66,9 @@ public final class ResHandshake1 extends ResHandshake {
                 byte len = _bytes[1];
                 String binaryVersion = "unknown";
                 int binaryVersionBytesLen = _bytes.length;
-                if(len > 0 && binaryVersionBytesLen >= MIN_LEN + len){
+                if (len > 0 && binaryVersionBytesLen >= MIN_LEN + len) {
                     byte[] binaryVersionBytes = Arrays.copyOfRange(_bytes, MIN_LEN, MIN_LEN + len);
-                    try{
+                    try {
                         binaryVersion = new String(binaryVersionBytes, "UTF-8");
                     } catch (UnsupportedEncodingException e) {
 
@@ -87,13 +88,13 @@ public final class ResHandshake1 extends ResHandshake {
         byte[] superBytes = super.encode();
         byte[] binaryVersionBytes = this.binaryVersion.getBytes();
         int len = binaryVersionBytes.length;
-        if(len > Byte.MAX_VALUE){
-            binaryVersionBytes = Arrays.copyOfRange(binaryVersionBytes, 0 , Byte.MAX_VALUE - 1);
+        if (len > Byte.MAX_VALUE) {
+            binaryVersionBytes = Arrays.copyOfRange(binaryVersionBytes, 0, Byte.MAX_VALUE - 1);
             len = Byte.MAX_VALUE;
         }
         ByteBuffer buf = ByteBuffer.allocate(superBytes.length + 1 + len);
         buf.put(superBytes);
-        buf.put((byte)len);
+        buf.put((byte) len);
         buf.put(binaryVersionBytes);
         return buf.array();
     }

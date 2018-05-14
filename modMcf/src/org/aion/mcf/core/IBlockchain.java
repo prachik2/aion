@@ -1,25 +1,36 @@
-/*******************************************************************************
+/*
+ * Copyright (c) 2017-2018 Aion foundation.
  *
- * Copyright (c) 2017, 2018 Aion foundation.
+ * This file is part of the aion network project.
  *
- * 	This program is free software: you can redistribute it and/or modify
- *     it under the terms of the GNU General Public License as published by
- *     the Free Software Foundation, either version 3 of the License, or
- *     (at your option) any later version.
+ * The aion network project is free software: you can redistribute it and/or modify it under the
+ * terms of the GNU General Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or any later version.
  *
- *     This program is distributed in the hope that it will be useful,
- *     but WITHOUT ANY WARRANTY; without even the implied warranty of
- *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *     GNU General Public License for more details.
+ * The aion network project is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ * PURPOSE. See the GNU General Public License for more details.
  *
- *     You should have received a copy of the GNU General Public License
- *     along with this program.  If not, see <https://www.gnu.org/licenses/>
+ * You should have received a copy of the GNU General Public License along with the aion network
+ * project source files. If not, see <https://www.gnu.org/licenses/>.
  *
- * Contributors:
- *     Aion foundation.
- *******************************************************************************/
+ * The aion network project leverages useful source code from other open source projects. We
+ * greatly appreciate the effort that was invested in these projects and we thank the individual
+ * contributors for their work. For provenance information and contributors. Please see
+ * <https://github.com/aionnetwork/aion/wiki/Contributors>.
+ *
+ * Contributors to the aion source files in decreasing order of code volume:
+ * Aion foundation.
+ * <ether.camp> team through the ethereumJ library.
+ * Ether.Camp Inc. (US) team through Ethereum Harmony.
+ * John Tromp through the Equihash solver.
+ * Samuel Neves through the BLAKE2 implementation.
+ * Zcash project team. Bitcoinj team.
+ */
 package org.aion.mcf.core;
 
+import java.math.BigInteger;
+import java.util.List;
 import org.aion.base.type.Address;
 import org.aion.base.type.IBlock;
 import org.aion.base.type.ITransaction;
@@ -28,9 +39,6 @@ import org.aion.mcf.types.AbstractBlockHeader;
 import org.aion.mcf.types.AbstractBlockSummary;
 import org.aion.mcf.types.AbstractTxReceipt;
 import org.aion.mcf.types.BlockIdentifier;
-
-import java.math.BigInteger;
-import java.util.List;
 
 /**
  * Blockchain interface.
@@ -42,7 +50,12 @@ import java.util.List;
  * @param <INFO>
  */
 @SuppressWarnings("rawtypes")
-public interface IBlockchain<BLK extends IBlock, BH extends AbstractBlockHeader, TX extends ITransaction, TR extends AbstractTxReceipt, INFO extends AbstractTxInfo>
+public interface IBlockchain<
+                BLK extends IBlock,
+                BH extends AbstractBlockHeader,
+                TX extends ITransaction,
+                TR extends AbstractTxReceipt,
+                INFO extends AbstractTxInfo>
         extends IPowChain<BLK, BH> {
 
     long getSize();
@@ -77,8 +90,8 @@ public interface IBlockchain<BLK extends IBlock, BH extends AbstractBlockHeader,
 
     boolean isBlockExist(byte[] hash);
 
-    List<BH> getListOfHeadersStartFrom(BlockIdentifier identifier, int skip, int limit, boolean reverse);
+    List<BH> getListOfHeadersStartFrom(
+            BlockIdentifier identifier, int skip, int limit, boolean reverse);
 
     List<byte[]> getListOfBodiesByHashes(List<byte[]> hashes);
-
 }

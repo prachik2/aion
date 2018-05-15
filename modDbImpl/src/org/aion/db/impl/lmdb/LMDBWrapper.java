@@ -24,9 +24,7 @@ public class LMDBWrapper extends AbstractDB {
     private Dbi<ByteBuffer> db;
     private Env<ByteBuffer> env;
 
-    static int maxMapSize = 128 * 1024 * 1024;
-    static int maxValueSize = 4 * 1024;
-    static int maxKeySize = 32;
+    static long maxMapSize = 1L << 40;  // 1T
 
     public LMDBWrapper(String name, String path, boolean enableCache, boolean enableCompression) {
         super(name, path, enableCache, enableCompression);
@@ -70,7 +68,7 @@ public class LMDBWrapper extends AbstractDB {
             LOG.info("folder {} created", f.getName());
         }
 
-        env = create().setMapSize(maxMapSize).setMaxDbs(16).setMaxReaders(16).open(f);
+        env = create().setMapSize(maxMapSize).setMaxDbs(2).setMaxReaders(8).open(f);
 
         try {
             db = env.openDbi(name, MDB_CREATE);
@@ -151,21 +149,9 @@ public class LMDBWrapper extends AbstractDB {
 
 
     @Override
-    public boolean isPersistent() {
-        return false;
-    }
-
-    @Override
     public boolean isCreatedOnDisk() {
         return new File(path).exists();
     }
-
-//    @Override
-//    public boolean isCreatedOnDisk() {
-//        // working heuristic for Ubuntu: both the LOCK and LOG files should get created on creation
-//        // TODO: implement a platform independent way to do this
-//        return new File(path, "LOCK").exists() && new File(path, "LOG").exists();
-//    }
 
     @Override
     public long approximateSize() {
@@ -223,10 +209,9 @@ public class LMDBWrapper extends AbstractDB {
     @Override
     protected byte[] getInternal(byte[] k) {
         ByteBuffer value;
-        ByteBuffer key = allocateDirect(maxKeySize).put(k).flip();
 
         try (Txn<ByteBuffer> rtx = env.txnRead()) {
-            value = db.get(rtx, key);
+            value = db.get(rtx, allocateDirect(k.length).put(k).flip());
             if (value != null) {
                 byte[] arr = new byte[value.remaining()];
                 value.get(arr);
@@ -266,15 +251,12 @@ public class LMDBWrapper extends AbstractDB {
         try (Txn<ByteBuffer> txn = env.txnWrite()) {
             final Cursor<ByteBuffer> c = db.openCursor(txn);
             for (Map.Entry<byte[], byte[]> e : inputMap.entrySet()) {
-                byte[] k = e.getKey();
-                byte[] v = e.getValue();
-
-                if (v == null) {
-                    if (c.get(allocateDirect(k.length).put(k).flip(), MDB_SET)) {
+                if (e.getValue() == null) {
+                    if (c.get(allocateDirect(e.getKey().length).put(e.getKey()).flip(), MDB_SET)) {
                         c.delete();
                     }
                 } else {
-                    c.put(allocateDirect(k.length).put(k).flip(), allocateDirect(v.length).put(v).flip());
+                    c.put(allocateDirect(e.getKey().length).put(e.getKey()).flip(), allocateDirect(e.getValue().length).put(e.getValue()).flip());
                 }
             }
 
@@ -297,8 +279,7 @@ public class LMDBWrapper extends AbstractDB {
             }
 
             if (value == null) {
-                final ByteBuffer k = allocateDirect(key.length).put(key).flip();
-                if (cursor.get(k, MDB_SET)) {
+                if (cursor.get(allocateDirect(key.length).put(key).flip(), MDB_SET)) {
                     cursor.delete();
                 }
             } else {

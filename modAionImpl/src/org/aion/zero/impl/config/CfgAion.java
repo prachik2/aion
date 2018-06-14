@@ -205,6 +205,9 @@ public final class CfgAion extends Cfg {
                     case "reports":
                         this.reports.fromXML(sr);
                         break;
+                    case "gui":
+                        this.gui.fromXML(sr);
+                        break;
                     default:
                         skipElement(sr);
                         break;

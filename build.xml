@@ -52,6 +52,7 @@
 		<pathelement location="${dir.modfile}/modFastVM.jar" />
 		<pathelement location="${dir.modfile}/modMcf.jar" />
 		<pathelement location="${dir.modfile}/modBoot.jar" />
+		<pathelement location="${dir.modfile}/modGui.jar" />
 	</path>
 
 	<path id="test.lib">
@@ -277,6 +278,11 @@
 
 		<echo message="building modBoot" />
 		<ant inheritAll="false" antfile="${dir.workspace}/modBoot/build.xml" target="clean_build">
+			<property name="compile.debug" value="${compile.debug}" />
+        </ant>
+
+		<echo message="building modGui" />
+		<ant inheritAll="false" antfile="${dir.workspace}/modGui/build.xml" target="clean_build">
 			<property name="compile.debug" value="${compile.debug}" />
 		</ant>
 	</target>

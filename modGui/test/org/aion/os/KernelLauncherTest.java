@@ -1,16 +1,19 @@
 package org.aion.os;
 
+import org.aion.mcf.config.CfgGuiLauncher;
+import org.junit.Test;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 public class KernelLauncherTest {
-//    @Test
-//    public void test() throws Exception {
-//        Process proc = new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG).launch();
-//        Thread.sleep(15000);
-//    }
+    @Test
+    public void test() throws Exception {
+        Process proc = new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG).launch();
+        Thread.sleep(15000);
+    }
 
     /*
     @Test

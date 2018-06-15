@@ -28,7 +28,7 @@ public class KernelConnection {
     private final ReentrantLock lock = new ReentrantLock();
 
     public KernelConnection() {
-        connect();
+        //connect();
 //        loadLocallySavedAccounts();
 //        backgroundExecutor.submit(() -> processNewTransactions(0, addressToAccount.keySet()));
         EventBusFactory.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
@@ -49,7 +49,7 @@ public class KernelConnection {
         return INST;
     }
 
-    private void connect() {
+    public void connect() {
         if (connectionFuture != null) {
             connectionFuture.cancel(true);
         }
@@ -59,7 +59,7 @@ public class KernelConnection {
         });
     }
 
-    private void disconnect() {
+    public void disconnect() {
 //        storeLightweightWalletSettings(lightAppSettings);
         lock();
         try {

@@ -11,7 +11,7 @@ import static org.mockito.Mockito.verify;
 public class KernelLauncherTest {
     @Test
     public void test() throws Exception {
-        Process proc = new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG).launch();
+        //Process proc = new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG).launch();
         Thread.sleep(15000);
     }
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash 
 
 cd "$(dirname $(realpath $0))"
 
@@ -37,5 +37,28 @@ ARG=$@
 # add execute permission to rt
 chmod +x ./rt/bin/*
 
-env EVMJIT="-cache=1" ./rt/bin/java -Xms4g \
-        -cp "./lib/*:./lib/libminiupnp/*:./mod/*" org.aion.Aion "$@"
+JAVA_CMD=java
+if [ -d "$JAVA_HOME" ]; then
+        JAVA_CMD="$JAVA_HOME/bin/java"
+fi
+
+trap "exit" INT TERM
+trap "exit_kernel" EXIT
+
+#env EVMJIT="-cache=1" java -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005 -Xms4g  \
+
+echo testing1... > /tmp/junk
+
+exit_kernel() { 
+    echo "TRAP: kernel_pid = $kernel_pid" >> /tmp/junk
+    if [ ! -z "$kernel_pid" ]; then
+        echo "killing..." >> /tmp/junk
+        kill "$kernel_pid" 
+    fi
+    exit 0
+}
+
+env EVMJIT="-cache=1" $JAVA_CMD -Xms4g  \
+        -cp "./lib/*:./lib/libminiupnp/*:./mod/*:/home/sergiu/opt/jdk-10.0.1/lib" org.aion.Aion "$@" &
+kernel_pid=$!
+wait

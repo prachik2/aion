@@ -15,8 +15,13 @@ import javafx.stage.StageStyle;
 import org.aion.gui.events.EventBusFactory;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.WindowControlsEvent;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
+import org.aion.mcf.config.CfgGuiLauncher;
+import org.aion.os.KernelLauncher;
 import org.aion.wallet.util.AionConstants;
 import org.aion.wallet.util.DataUpdater;
+import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,16 +29,18 @@ import java.util.Timer;
 import java.util.concurrent.Executors;
 
 public class MainWindow extends Application {
-    private static final String TITLE = "Aion Kernel";
-    private static final String MAIN_WINDOW_FXML = "MainWindow.fxml";
-    private static final String AION_LOGO = "components/icons/aion_logo.png";
-
     private double xOffset;
     private double yOffset;
     private Stage stage;
     private final Timer timer = new Timer();
 
     private final Map<HeaderPaneButtonEvent.Type, Node> panes = new HashMap<>();
+
+    private static final String TITLE = "Aion Kernel";
+    private static final String MAIN_WINDOW_FXML = "MainWindow.fxml";
+    private static final String AION_LOGO = "components/icons/aion_logo.png";
+
+    private static final Logger LOG = AionLoggerFactory.getLogger(LogEnum.GUI.name());
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -42,6 +49,7 @@ public class MainWindow extends Application {
 
     /** This impl contains start-up code to make the GUI more fancy.  Lifted from aion_ui.  */
     private void startFancy(Stage stage) throws Exception {
+        LOG.debug("Starting UI");
 
         this.stage = stage;
         stage.initStyle(StageStyle.TRANSPARENT);
@@ -49,7 +57,13 @@ public class MainWindow extends Application {
 
         registerEventBusConsumer();
 
-        Parent root = FXMLLoader.load(getClass().getResource(MAIN_WINDOW_FXML));
+        FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
+        loader.setControllerFactory(new ControllerFactory()
+                .withKernelConnection(KernelConnection.createDefaultConnection())
+                .withKernelLauncher(new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG /* TODO actual config */))
+        );
+        Parent root = loader.load();
+
         root.setOnMousePressed(this::handleMousePressed);
         root.setOnMouseDragged(this::handleMouseDragged);
 
@@ -83,7 +97,7 @@ public class MainWindow extends Application {
     }
 
     private void shutDown() {
-        System.out.println("XXX MainWindow#shutDown() called");
+        LOG.info("Shutting down.");
         Platform.exit();
         //BlockchainConnector.getInstance().close();
         Executors.newSingleThreadExecutor().submit(() -> System.exit(0));

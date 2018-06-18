@@ -15,6 +15,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Provides an interface to the Aion API.  This is
+ */
 public class KernelConnection {
 
     private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
@@ -23,30 +26,32 @@ public class KernelConnection {
 
     private LightAppSettings lightAppSettings = getLightweightWalletSettings(ApiType.JAVA);
 
-    private final static IAionAPI API = AionAPIImpl.inst();
-
     private final ReentrantLock lock = new ReentrantLock();
 
-    public KernelConnection() {
-        //connect();
-//        loadLocallySavedAccounts();
-//        backgroundExecutor.submit(() -> processNewTransactions(0, addressToAccount.keySet()));
+    private final IAionAPI api;
+
+    /**
+     * Constructor.  See also {@link #createDefaultConnection()}.
+     *
+     * @param aionApi API to connect to.
+     */
+    public KernelConnection(IAionAPI aionApi) {
+        this.api = aionApi;
+
         EventBusFactory.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
         EventBusFactory.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
     }
 
-    private static KernelConnection INST;
-
-    public static KernelConnection getInstance() {
-        /*
-         * FIXME Really not a big fan of making this Singleton but the code
-         * I copy-pasta'd from aion_ui calls out to the connection through static singleton calls;
-         * don't want to write the plumbing right now for D.I. right now, may refactor after
-         */
-        if(INST == null) {
-            INST = new KernelConnection();
-        }
-        return INST;
+    /**
+     * Convenient static builder method to construct this class with underlying API instance
+     * {@link AionAPIImpl#inst()}.
+     *
+     * This is equivalent to <tt>new KernelConnection(org.aion.api.impl.IAionAPI.inst())</tt>.
+     *
+     * @return a kernel connection connected to {@link AionAPIImpl#inst()}.
+     */
+    public static KernelConnection createDefaultConnection() {
+        return new KernelConnection(AionAPIImpl.inst());
     }
 
     public void connect() {
@@ -54,7 +59,7 @@ public class KernelConnection {
             connectionFuture.cancel(true);
         }
         connectionFuture = backgroundExecutor.submit(() -> {
-            API.connect(getConnectionString(), true);
+            api.connect(getConnectionString(), true);
             EventPublisher.fireOperationFinished();
         });
     }
@@ -63,7 +68,7 @@ public class KernelConnection {
 //        storeLightweightWalletSettings(lightAppSettings);
         lock();
         try {
-            API.destroyApi().getObject();
+            api.destroyApi().getObject();
         } finally {
             unLock();
         }
@@ -99,7 +104,7 @@ public class KernelConnection {
         try {
             lock();
             try {
-                syncInfo = API.getNet().syncInfo().getObject();
+                syncInfo = api.getNet().syncInfo().getObject();
             } finally {
                 unLock();
             }
@@ -119,8 +124,8 @@ public class KernelConnection {
         final Long latest;
         lock();
         try {
-            if (API.isConnected()) {
-                latest = API.getChain().blockNumber().getObject();
+            if (api.isConnected()) {
+                latest = api.getChain().blockNumber().getObject();
             } else {
                 latest = 0L;
             }
@@ -134,7 +139,7 @@ public class KernelConnection {
         final boolean connected;
         lock();
         try {
-            connected = API.isConnected();
+            connected = api.isConnected();
         } finally {
             unLock();
         }
@@ -145,8 +150,8 @@ public class KernelConnection {
         final int size;
         lock();
         try {
-            if (API.isConnected()) {
-                size = ((List) API.getNet().getActiveNodes().getObject()).size();
+            if (api.isConnected()) {
+                size = ((List) api.getNet().getActiveNodes().getObject()).size();
             } else {
                 size = 0;
             }

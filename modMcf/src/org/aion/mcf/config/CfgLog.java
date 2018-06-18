@@ -50,6 +50,7 @@ public class CfgLog {
         modules.put(LogEnum.API.name(), LogLevels.INFO.name());
         modules.put(LogEnum.TX.name(), LogLevels.ERROR.name());
         modules.put(LogEnum.TXPOOL.name(), LogLevels.ERROR.name());
+        modules.put(LogEnum.GUI.name(), LogLevels.TRACE.name());
         this.logFile = false;
         this.logPath = "log";
     }

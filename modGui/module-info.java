@@ -1,6 +1,7 @@
 module aion.boot {
     requires aion.log;
     requires aion.mcf;
+    requires aion.zero.impl;
 
     requires slf4j.api;
 

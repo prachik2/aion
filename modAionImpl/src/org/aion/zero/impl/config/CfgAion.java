@@ -60,6 +60,7 @@ public final class CfgAion extends Cfg {
         this.log = new CfgLog();
         this.tx = new CfgTx();
         this.reports = new CfgReports();
+        this.gui = new CfgGui();
     }
 
     private static class CfgAionHolder {

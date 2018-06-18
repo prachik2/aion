@@ -14,10 +14,14 @@ import java.util.ResourceBundle;
 
 public class SyncStatusController extends AbstractController {
 
-    private final KernelConnection kernel = KernelConnection.getInstance();
+    private final KernelConnection kernel;
 
     @FXML
     private Label progressBarLabel;
+
+    public SyncStatusController(KernelConnection kernelConnection) {
+        this.kernel = kernelConnection;
+    }
 
     @Override
     protected void internalInit(URL location, ResourceBundle resources) {

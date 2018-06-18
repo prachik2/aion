@@ -80,6 +80,7 @@
             <modulepath> 
                 <pathelement location="${dir.mod}/modLogger.jar"/>
                 <pathelement location="${dir.mod}/modMcf.jar"/>
+                <pathelement location="${dir.mod}/modAionImpl.jar"/>
                 <pathelement location="${dir.lib}/slf4j-api-1.7.25.jar"/>
                 <pathelement location="${dir.lib}/guava-19.0.jar" />
                 <!-- FIXME: massive HACK, figure out how to reference this in a smarter way...  probably the top-level build.xml needs to be aware of aion_api -->

@@ -16,7 +16,11 @@ public class PeerCountController extends AbstractController {
     @FXML
     private Label peerCount;
 
-    private final KernelConnection kernel = KernelConnection.getInstance();
+    private final KernelConnection kernel;
+
+    public PeerCountController(KernelConnection kernelConnection) {
+        this.kernel = kernelConnection;
+    }
 
     @Override
     public void internalInit(final URL location, final ResourceBundle resources) {

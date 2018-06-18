@@ -16,11 +16,9 @@ import java.net.URL;
 import java.util.ResourceBundle;
 
 public class SettingsController extends AbstractController {
+    private final KernelConnection kernel;
 
-    //private static final Logger logger = AionLoggerFactory.getLogger(org.aion.log.LogEnum.UI.name());
-    private static final Logger logger = AionLoggerFactory.getLogger("temp");
-
-    private final KernelConnection kernel = KernelConnection.getInstance();
+    private static final Logger LOGGER = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
 
     @FXML
     public TextField protocol;
@@ -33,10 +31,12 @@ public class SettingsController extends AbstractController {
 
     private LightAppSettings settings;
 
-    public SettingsController() {
+    public SettingsController(KernelConnection kernelConnection) {
+        this.kernel = kernelConnection;
+
         /* FIXME probably not the right place for this */
         /* */
-        settings = new LightAppSettings("127.0.0.1", "8547", "tcp", ApiType.JAVA);
+        this.settings = new LightAppSettings("127.0.0.1", "8547", "tcp", ApiType.JAVA);
     }
 
     @Override

@@ -16,7 +16,11 @@ public class ConnectivityStatusController extends AbstractController {
 
     private static final String CONNECTIVITY_STATUS_DISCONNECTED = "DISCONNECTED";
 
-    private final KernelConnection kernel = KernelConnection.getInstance();
+    private final KernelConnection kernel;
+
+    public ConnectivityStatusController(KernelConnection kernelConnection) {
+        this.kernel = kernelConnection;
+    }
 
     @FXML
     private Label connectivityLabel;

@@ -5,9 +5,9 @@ import com.google.common.eventbus.EventBus;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EventBusFactory {
+public class EventBusRegistry {
 
-    private static final EventBusFactory INSTANCE = new EventBusFactory();
+    private static final EventBusRegistry INSTANCE = new EventBusRegistry();
 
     private final Map<String, EventBus> busMap = new HashMap<>();
 
@@ -15,7 +15,7 @@ public class EventBusFactory {
         return INSTANCE.getBusById(identifier);
     }
 
-    private EventBusFactory() {}
+    private EventBusRegistry() {}
 
     private EventBus getBusById(final String identifier) {
         return busMap.computeIfAbsent(identifier, EventBus::new);

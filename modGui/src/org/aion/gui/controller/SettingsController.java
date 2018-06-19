@@ -7,7 +7,7 @@ import javafx.scene.control.TextField;
 import org.aion.log.AionLoggerFactory;
 import org.aion.gui.model.LightAppSettings;
 import org.aion.gui.model.ApiType;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.slf4j.Logger;
@@ -46,7 +46,7 @@ public class SettingsController extends AbstractController {
 
     @Override
     protected void registerEventBusConsumer() {
-        EventBusFactory.getBus(HeaderPaneButtonEvent.ID).register(this);
+        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).register(this);
     }
 
     public void changeSettings() {

@@ -33,16 +33,17 @@
     </VBox>
 
     <!-- TODO: Make it so launch/terminate is just one button depending on current state -->
-    <Button 
+    <Button fx:id="launchKernelButton"
         GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="1"
         AnchorPane.topAnchor="50" AnchorPane.leftAnchor="10" 
         mnemonicParsing="false" text="Launch kernel" 
         onMouseClicked="#launchKernel"/>
-    <Button 
+    <Button fx:id="terminateKernelButton"
         GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.columnSpan="1"
         AnchorPane.topAnchor="50" AnchorPane.leftAnchor="10" 
         mnemonicParsing="false" text="Terminate kernel" 
-        onMouseClicked="#terminateKernel"/>
+        onMouseClicked="#terminateKernel"
+        disable="true" />
 
     <GridPane id="kernelInfo"
         alignment="center" hgap="50" vgap="10" 

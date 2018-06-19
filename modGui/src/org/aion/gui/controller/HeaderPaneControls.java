@@ -12,7 +12,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import org.aion.log.AionLoggerFactory;
 import org.aion.gui.model.AccountDTO;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.RefreshEvent;
@@ -68,7 +68,7 @@ public class HeaderPaneControls extends AbstractController {
     @Override
     protected void registerEventBusConsumer() {
         super.registerEventBusConsumer();
-        EventBusFactory.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
+        EventBusRegistry.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
     }
 
     public void openAionWebSite() {
@@ -112,7 +112,7 @@ public class HeaderPaneControls extends AbstractController {
     }
 
     private void sendPressedEvent(final HeaderPaneButtonEvent event) {
-        EventBusFactory.getBus(HeaderPaneButtonEvent.ID).post(event);
+        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).post(event);
     }
 
     @Subscribe

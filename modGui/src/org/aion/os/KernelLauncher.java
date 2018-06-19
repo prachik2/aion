@@ -3,6 +3,7 @@ package org.aion.os;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgGuiLauncher;
@@ -16,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class KernelLauncher {
     private final CfgGuiLauncher config;
     private final KernelLaunchConfigurator kernelLaunchConfigurator;
+    private final EventBusRegistry eventBusRegistry;
 
     private KernelInstancePidImpl currentInstance = null;
 
@@ -27,18 +29,23 @@ public class KernelLauncher {
      *
      * @see {@link CfgGuiLauncher#AUTODETECTING_CONFIG} if you want Kernel Launcher to auto-detect the parameters
      */
-    public KernelLauncher(CfgGuiLauncher cfgGuiLauncher) {
-        this(cfgGuiLauncher, new KernelLaunchConfigurator());
+    public KernelLauncher(CfgGuiLauncher cfgGuiLauncher,
+                          EventBusRegistry eventBusRegistry) {
+        this(cfgGuiLauncher, new KernelLaunchConfigurator(), eventBusRegistry);
     }
 
     /** Ctor with injectable parameters for unit testing */
-    @VisibleForTesting protected KernelLauncher(CfgGuiLauncher config, KernelLaunchConfigurator klc) {
+    @VisibleForTesting protected KernelLauncher(CfgGuiLauncher config,
+                                                KernelLaunchConfigurator klc,
+                                                EventBusRegistry ebr) {
         this.config = config;
         this.kernelLaunchConfigurator = klc;
+        this.eventBusRegistry = ebr;
     }
 
     /**
-     * Launch a separate JVM in a new OS process and within it, run the Aion kernel.
+     * Launch a separate JVM in a new OS process and within it, run the Aion kernel.  PID of process
+     * is persisted to disk.
      *
      * @return if successful, a {@link Optional<Process>} whose value is the Process of the aion.sh
      *         wrapper script; otherwise, {@link Optional#empty()}.
@@ -47,7 +54,8 @@ public class KernelLauncher {
         return Optional.ofNullable(launch(new ProcessBuilder()));
     }
 
-    @VisibleForTesting protected Process launch(ProcessBuilder processBuilder) throws IOException {
+    /** Same as {@link #launch() but with injectable ProcessBuilder for unit testing */
+    @VisibleForTesting Process launch(ProcessBuilder processBuilder) throws IOException {
         if(config.isAutodetectJavaRuntime()) {
             kernelLaunchConfigurator.configureAutomatically(processBuilder);
         } else {
@@ -81,16 +89,25 @@ public class KernelLauncher {
                 InputStreamReader isr = new InputStreamReader(is, Charsets.UTF_8);
         ) {
             String pid = CharStreams.toString(isr).replace("\n", "");
-            System.out.println("pid = " + pid);
+            LOGGER.info("Started kernel with pid = {}", pid);
             setAndPersistPid(Long.valueOf(pid));
         } catch (IOException ioe) {
             LOGGER.error("PID Serialization error.", ioe);
         }
 
+        eventBusRegistry.getBus()
         return proc;
     }
 
-    public boolean tryResume() throws Exception {
+    /**
+     * Look for a Kernel PID that we previously launched and persisted to disk.  If successful,
+     * set that PID as the launched kernel instance.
+     *
+     * @return true if old kernel PID found; false otherwise
+     * @throws IOException if old kernel PID file found, but error occurred while trying to read it
+     * @throws ClassNotFoundException if old kernel PID file found, but error occurred while trying to read it
+     */
+    public boolean tryResume() throws ClassNotFoundException, IOException {
         if(this.currentInstance != null) {
             throw new IllegalArgumentException("Can't try to resume because there is already an associated instance.");
         }
@@ -99,23 +116,26 @@ public class KernelLauncher {
         if(pidFile.exists() && !pidFile.isDirectory()) {
             try {
                 this.currentInstance = retrieveAndSetPid(pidFile);
-                System.out.println("Resumed pid = " + this.currentInstance.getPid());
+                LOGGER.debug("Found old kernel pid = {}", currentInstance.getPid());
                 return true;
-            } catch (Exception e) {
-                // TODO Better Exceptions
-                System.out.println("Error during deserilaiztaion");
-                throw e;
+            } catch (ClassNotFoundException | IOException ex) {
+                LOGGER.error("PID Deserialization error.", ex);
+                throw ex;
             }
         } else {
             return false;
         }
     }
 
+    /**
+     *
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public int terminate() throws IOException, InterruptedException {
         // TODO: add a terminate function to the AionAPI that will
         // exit the kernel and use that instead of killing unix scripts
-
-        System.out.println("terminate " + currentInstance.getPid());
 
         if(currentInstance == null) {
             throw new IllegalArgumentException("Trying to terminate when there is no running instance");
@@ -125,10 +145,11 @@ public class KernelLauncher {
                         String.valueOf(currentInstance.getPid()))
                 .redirectOutput(ProcessBuilder.Redirect.INHERIT)
                 .redirectError(ProcessBuilder.Redirect.INHERIT);
+        LOGGER.info("About to kill pid {}", currentInstance.getPid());
         Process proc = processBuilder.start();
         proc.waitFor(5, TimeUnit.SECONDS);
         this.currentInstance = null;
-        System.out.println("kill returned " + proc.exitValue());
+        LOGGER.debug("`kill` return code: " + proc.exitValue());
         return proc.exitValue();
     }
 
@@ -136,13 +157,13 @@ public class KernelLauncher {
         return currentInstance != null;
     }
 
-    protected KernelInstancePidImpl retrieveAndSetPid(File pidFile) throws IOException, ClassNotFoundException {
+    private KernelInstancePidImpl retrieveAndSetPid(File pidFile) throws IOException, ClassNotFoundException {
         FileInputStream fis = new FileInputStream(PID_LOCATION);
         ObjectInputStream ois = new ObjectInputStream(fis);
         return (KernelInstancePidImpl) ois.readObject();
     }
 
-    protected KernelInstancePidImpl setAndPersistPid(long pid) throws IOException {
+    private KernelInstancePidImpl setAndPersistPid(long pid) throws IOException {
         KernelInstancePidImpl kernel = new KernelInstancePidImpl(pid);
         FileOutputStream fos = new FileOutputStream(PID_LOCATION);
         ObjectOutputStream oos = new ObjectOutputStream(fos);

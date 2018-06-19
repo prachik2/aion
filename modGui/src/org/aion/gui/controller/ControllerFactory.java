@@ -26,9 +26,15 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
 
     private KernelConnection kernelConnection;
     private KernelLauncher kernelLauncher;
+    private KernelUpdateTimer kernelUpdateTimer;
 
     private static final Logger LOG = org.aion.log.AionLoggerFactory
             .getLogger(org.aion.log.LogEnum.GUI.name());
+
+    @FunctionalInterface
+    private interface BuildMethod {
+        AbstractController build();
+    }
 
     /**
      * Constructor.  See "withXXX" methods for setting factory parameters, i.e.
@@ -37,7 +43,7 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
     public ControllerFactory() {
         this.builderChooser = new HashMap<>() {{
             put(DashboardController.class, () -> new DashboardController(
-                    kernelLauncher, kernelConnection));
+                    kernelLauncher, kernelConnection, kernelUpdateTimer));
             put(SettingsController.class, () -> new SettingsController(
                     kernelConnection));
             put(ConnectivityStatusController.class, () -> new ConnectivityStatusController(
@@ -49,6 +55,38 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
                     kernelConnection
             ));
         }};
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @param clazz the class to build
+     * @return an instance of clazz
+     */
+    @Override
+    public Object call(Class<?> clazz) {
+        BuildMethod builder = builderChooser.get(clazz);
+        if(null != builder) {
+            LOG.debug("Instantiating {} with predefined build method", clazz.toString());
+            return builder.build();
+        } else {
+            LOG.debug("Instantiating {} with default constructor", clazz.toString());
+
+            // if we did not configure this class in builderChooser, fall back to try to calling
+            // the class's zero-argument constructor.  if that doesn't work, give up and throw.
+            try {
+                return clazz.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException
+                    | IllegalArgumentException
+                    | InstantiationException
+                    | InvocationTargetException
+                    | IllegalAccessException ex) {
+                throw new IllegalArgumentException(String.format(
+                        "Error trying to construct Controller class '%s'.  It was not configured " +
+                                "with a constructor call and we could not call its default constructor",
+                                clazz.toString()), ex);
+            }
+        }
     }
 
     /**
@@ -84,39 +122,18 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
     }
 
     /**
-     * {@inheritDoc}
-     *
-     * @param clazz the class to build
-     * @return an instance of clazz
+     * @param kernelUpdateTimer sets the timer used by this factory
+     * @return this
      */
-    @Override
-    public Object call(Class<?> clazz) {
-        BuildMethod builder = builderChooser.get(clazz);
-        if(null != builder) {
-            LOG.debug("Instantiating {} with predefined constructor", clazz.toString());
-            return builder.build();
-        } else {
-            LOG.debug("Instantiating {} with default constructor", clazz.toString());
-
-            // if we did not configure this class in builderChooser, fall back to try to calling
-            // the class's zero-argument constructor.  if that doesn't work, give up and throw.
-            try {
-                return clazz.getDeclaredConstructor().newInstance();
-            } catch (NoSuchMethodException
-                    | IllegalArgumentException
-                    | InstantiationException
-                    | InvocationTargetException
-                    | IllegalAccessException ex) {
-                throw new IllegalArgumentException(String.format(
-                        "Error trying to construct Controller class '%s'.  It was not configured " +
-                                "with a constructor call and calling its zero-argument public constructor" +
-                                "raised an exception.", clazz.toString()), ex);
-            }
-        }
+    public ControllerFactory withTimer(KernelUpdateTimer kernelUpdateTimer) {
+        this.kernelUpdateTimer = kernelUpdateTimer;
+        return this;
     }
 
-    @FunctionalInterface
-    private interface BuildMethod {
-        AbstractController build();
+    /**
+     * @return the timer used by this factory
+     */
+    public KernelUpdateTimer getTimer() {
+        return kernelUpdateTimer;
     }
 }

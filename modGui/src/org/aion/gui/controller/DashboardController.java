@@ -1,32 +1,39 @@
 package org.aion.gui.controller;
 
 import com.google.common.eventbus.Subscribe;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.input.MouseEvent;
-import org.aion.api.log.AionLoggerFactory;
-import org.aion.api.log.LogEnum;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.RefreshEvent;
 import org.aion.gui.model.AccountDTO;
-import org.aion.mcf.config.CfgGuiLauncher;
-import org.aion.os.KernelInstance;
+import org.aion.log.AionLoggerFactory;
 import org.aion.os.KernelLauncher;
 import org.slf4j.Logger;
 
 import java.net.URL;
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Timer;
 
 public class DashboardController extends AbstractController {
-    // FIXME
-    private static final Logger LOG = org.aion.log.AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
-
-    private final KernelLauncher kernelLauncher; //= new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG);
+    private final KernelLauncher kernelLauncher;
     private final KernelConnection kernelConnection;
+    private final KernelUpdateTimer kernelUpdateTimer;
+
+    @FXML
+    private Button launchKernelButton;
+
+    @FXML
+    private Button terminateKernelButton;
+
+    private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
 
     public DashboardController(KernelLauncher kernelLauncher,
-                               KernelConnection kernelConnection) {
+                               KernelConnection kernelConnection,
+                               KernelUpdateTimer kernelUpdateTimer) {
         this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
+        this.kernelUpdateTimer = kernelUpdateTimer;
     }
 
     @Override
@@ -53,21 +60,37 @@ public class DashboardController extends AbstractController {
     }
 
     public void launchKernel(MouseEvent mouseEvent) throws Exception {
-        LOG.debug("Launching kernel");
-        kernelLauncher.launch();
-
-        Thread.sleep(2000);
-        kernelConnection.connect();
+        LOG.debug("launchKernel clicked");
+        try {
+            launchKernelButton.setDisable(true);
+            kernelLauncher.launch();
+            terminateKernelButton.setDisable(false);
+            Thread.sleep(2000);
+            kernelConnection.connect();
+            kernelUpdateTimer.fireImmediatelyAndThenStart();
+        } catch (RuntimeException ex) {
+            launchKernelButton.setDisable(false);
+            terminateKernelButton.setDisable(true);
+            kernelUpdateTimer.fireImmediatelyAndThenStop();
+        }
     }
 
     public void terminateKernel(MouseEvent mouseEvent) throws Exception {
-        //FIXME
         LOG.debug("Exiting kernel");
-        System.out.println("kernelLauncher.hasLaunchedInstance = " + kernelLauncher.hasLaunchedInstance() );
-        if(kernelLauncher.hasLaunchedInstance()
-            || (!kernelLauncher.hasLaunchedInstance() && kernelLauncher.tryResume())) {
-            kernelLauncher.terminate();
-            kernelConnection.disconnect();
+        try {
+            if (kernelLauncher.hasLaunchedInstance()
+                    || (!kernelLauncher.hasLaunchedInstance() && kernelLauncher.tryResume())) {
+                launchKernelButton.setDisable(false);
+                kernelLauncher.terminate();
+                kernelConnection.disconnect();
+                terminateKernelButton.setDisable(true);
+                kernelUpdateTimer.fireImmediatelyAndThenStop();
+            }
+
+        } catch (RuntimeException ex) {
+            launchKernelButton.setDisable(true);
+            terminateKernelButton.setDisable(false);
+            kernelUpdateTimer.fireImmediatelyAndThenStart();
         }
     }
 }

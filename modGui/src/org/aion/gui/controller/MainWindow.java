@@ -12,27 +12,59 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.WindowControlsEvent;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgGuiLauncher;
 import org.aion.os.KernelLauncher;
-import org.aion.wallet.util.AionConstants;
-import org.aion.wallet.util.DataUpdater;
+import org.aion.zero.impl.config.CfgAion;
 import org.slf4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
+import java.util.ServiceLoader;
 import java.util.concurrent.Executors;
 
+/**
+ * Top-level class of the JavaFX Application.
+ */
 public class MainWindow extends Application {
+    /*
+     * Implementation/design notes:
+     *
+     * The GUI application code uses a variation of MVC, with PubSub pattern facilitating
+     * communication between view and model.  For us, we'll divide up the responsibilities as
+     * into the following layers:
+     *
+     * 1) Model: any class that interfaces with components outside of the GUI; i.e. KernelLauncher
+     *    for interface with the OS to launch processes; KernelConnection provides interface to
+     *    Aion API.  The state of Aion API lives in the model layer.  The model does not know about
+     *    Controller or View, it just publishes events into the EventBus.
+     *
+     * 2) View: the layer that contains the UI elements; i.e. all of the JavaFX .fxml files.  The
+     *    elements in the View (i.e. a Button) have associated handler methods, which are part of
+     *    Controller.  Through these associated methods, View knows about Controller and can
+     *    delegate control to classes/methods in Controller.  The View is very "dumb" and doesn't
+     *    have logic to modify itself.
+     *
+     * 3) Controller: this layer mediates interaction between Model and View by serving two purposes:
+     *      (a) Contains handlers to which the View is registered.  Usually these handlers manipulate
+     *          Model through some simple call.  Complex logic should live in the Model.
+     *      (b) Subscribe to events emitted by Model and update View accordingly.  Events that it may
+     *          need to handle include kernel state change (e.g. # of peers).
+     *
+     * Depending on how the code develops we can revisit this.  The fact that Controller layer has
+     * two purposes may end up getting unwieldy; if so, maybe move (a) into the responsibility of
+     * View or call it out as something else ("View controller"?).
+     */
+
     private double xOffset;
     private double yOffset;
     private Stage stage;
-    private final Timer timer = new Timer();
+
+    private final KernelUpdateTimer timer;
 
     private final Map<HeaderPaneButtonEvent.Type, Node> panes = new HashMap<>();
 
@@ -42,28 +74,25 @@ public class MainWindow extends Application {
 
     private static final Logger LOG = AionLoggerFactory.getLogger(LogEnum.GUI.name());
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        startFancy(stage);
+    public MainWindow() {
+        timer = new KernelUpdateTimer(Executors.newSingleThreadScheduledExecutor());
     }
 
     /** This impl contains start-up code to make the GUI more fancy.  Lifted from aion_ui.  */
-    private void startFancy(Stage stage) throws Exception {
+    @Override
+    public void start(Stage stage) throws Exception {
+        // Set up Cfg and Logger
+        CfgAion cfg = CfgAion.inst();
+        initLogger(cfg);
         LOG.debug("Starting UI");
 
+        // Set up JavaFX stage and root
         this.stage = stage;
         stage.initStyle(StageStyle.TRANSPARENT);
         stage.getIcons().add(new Image(getClass().getResourceAsStream(AION_LOGO)));
 
-        registerEventBusConsumer();
-
-        FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
-        loader.setControllerFactory(new ControllerFactory()
-                .withKernelConnection(KernelConnection.createDefaultConnection())
-                .withKernelLauncher(new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG /* TODO actual config */))
-        );
-        Parent root = loader.load();
-
+        // Set up root window and stage and register basic UI event handlers
+        Parent root = loader().load();
         root.setOnMousePressed(this::handleMousePressed);
         root.setOnMouseDragged(this::handleMouseDragged);
 
@@ -79,16 +108,39 @@ public class MainWindow extends Application {
         panes.put(HeaderPaneButtonEvent.Type.OVERVIEW, scene.lookup("#overviewPane"));
         panes.put(HeaderPaneButtonEvent.Type.SETTINGS, scene.lookup("#settingsPane"));
 
-        timer.schedule(
-                new DataUpdater(),
-                AionConstants.BLOCK_MINING_TIME_MILLIS,
-                3 * AionConstants.BLOCK_MINING_TIME_MILLIS
+        // Set up event bus
+        registerEventBusConsumer();
+    }
+
+    private FXMLLoader loader() {
+        FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
+        loader.setControllerFactory(new ControllerFactory()
+                .withKernelConnection(KernelConnection.createDefaultConnection())
+                .withKernelLauncher(new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG /* TODO actual config */))
+                .withTimer(timer)
         );
+        return loader;
+    }
+
+    private void initLogger(CfgAion cfg) {
+        // Initialize logging.  Borrowed from Aion CLI program.
+        ServiceLoader.load(AionLoggerFactory.class);
+        // Outputs relevant logger configuration
+        // TODO the info/error println messages should be presented via GUI
+        if (!cfg.getLog().getLogFile()) {
+            System.out.println("Logger disabled; to enable please check log settings in config.xml\n");
+        } else if (!cfg.getLog().isValidPath() && cfg.getLog().getLogFile()) {
+            System.out.println("File path is invalid; please check log setting in config.xml\n");
+            System.exit(1);
+        } else if (cfg.getLog().isValidPath() && cfg.getLog().getLogFile()) {
+            System.out.println("Logger file path: '" + cfg.getLog().getLogPath() + "'\n");
+        }
+        AionLoggerFactory.init(cfg.getLog().getModules(), cfg.getLog().getLogFile(), cfg.getLog().getLogPath());
     }
 
     private void registerEventBusConsumer() {
-        EventBusFactory.getBus(WindowControlsEvent.ID).register(this);
-        EventBusFactory.getBus(HeaderPaneButtonEvent.ID).register(this);
+        EventBusRegistry.getBus(WindowControlsEvent.ID).register(this);
+        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).register(this);
     }
 
     private void handleMouseDragged(final MouseEvent event) {
@@ -101,8 +153,7 @@ public class MainWindow extends Application {
         Platform.exit();
         //BlockchainConnector.getInstance().close();
         Executors.newSingleThreadExecutor().submit(() -> System.exit(0));
-        timer.cancel();
-        timer.purge();
+        timer.stop();
     }
 
     private void handleMousePressed(final MouseEvent event) {
@@ -111,7 +162,7 @@ public class MainWindow extends Application {
     }
 
     @Subscribe
-    private void handleWindowControlsEvent(final org.aion.gui.events.WindowControlsEvent event) {
+    private void handleWindowControlsEvent(final WindowControlsEvent event) {
         switch (event.getType()) {
             case MINIMIZE:
                 minimize(event);
@@ -138,9 +189,7 @@ public class MainWindow extends Application {
         }
     }
 
-    private void minimize(final org.aion.gui.events.WindowControlsEvent event) {
+    private void minimize(final WindowControlsEvent event) {
         ((Stage) event.getSource().getScene().getWindow()).setIconified(true);
     }
-
-
 }

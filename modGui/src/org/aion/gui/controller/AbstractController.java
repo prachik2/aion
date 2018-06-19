@@ -7,11 +7,12 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.Node;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.wallet.util.DataUpdater;
+import org.aion.gui.util.DataUpdater;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -22,8 +23,7 @@ import java.util.function.Function;
 
 public abstract class AbstractController implements Initializable {
 
-    //private static final Logger log = AionLoggerFactory.getLogger(/*LogEnum.WLT.name()*/ "AbstractController");
-    private static final Logger log = LoggerFactory.getLogger("AbstractController"); /*FIXME */
+    private static final Logger LOG = AionLoggerFactory.getLogger(LogEnum.GUI.name());
 
     @FXML
     private Node parent;
@@ -37,7 +37,7 @@ public abstract class AbstractController implements Initializable {
     }
 
     protected void registerEventBusConsumer() {
-        EventBusFactory.getBus(DataUpdater.UI_DATA_REFRESH).register(this);
+        EventBusRegistry.getBus(DataUpdater.UI_DATA_REFRESH).register(this);
     }
 
     @Subscribe
@@ -73,7 +73,7 @@ public abstract class AbstractController implements Initializable {
         return event -> {
             Throwable e = t.getException();
             if (e != null) {
-                log.error(e.getMessage(), e);
+                LOG.error(e.getMessage(), e);
                 consumer.accept(e);
             }
         };

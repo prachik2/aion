@@ -6,7 +6,7 @@ import org.aion.api.type.SyncInfo;
 import org.aion.gui.model.SyncInfoDTO;
 import org.aion.gui.model.LightAppSettings;
 import org.aion.gui.model.ApiType;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
 
 import java.util.List;
@@ -38,8 +38,8 @@ public class KernelConnection {
     public KernelConnection(IAionAPI aionApi) {
         this.api = aionApi;
 
-        EventBusFactory.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
-        EventBusFactory.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
+        EventBusRegistry.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
+        EventBusRegistry.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
     }
 
     /**

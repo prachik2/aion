@@ -4,13 +4,13 @@ import com.google.common.eventbus.EventBus;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
-import org.aion.gui.events.EventBusFactory;
+import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.WindowControlsEvent;
 
 public class WindowControls {
 
     private final WindowControlsEvent closeEvent = new WindowControlsEvent(WindowControlsEvent.Type.CLOSE, null);
-    private final EventBus eventBus = EventBusFactory.getBus(WindowControlsEvent.ID);
+    private final EventBus eventBus = EventBusRegistry.getBus(WindowControlsEvent.ID);
 
     @FXML
     private void minimize(final MouseEvent mouseEvent) {

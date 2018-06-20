@@ -15,6 +15,8 @@ import javafx.stage.StageStyle;
 import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.WindowControlsEvent;
+import org.aion.gui.model.KernelConnection;
+import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgGuiLauncher;
@@ -54,6 +56,10 @@ public class MainWindow extends Application {
      *          Model through some simple call.  Complex logic should live in the Model.
      *      (b) Subscribe to events emitted by Model and update View accordingly.  Events that it may
      *          need to handle include kernel state change (e.g. # of peers).
+     *    Generally, each View component has one or zero accompanying classes that are part of the
+     *    Controller layer (usually a class name ending with "Controller").  Within it are the handlers
+     *    for its corresponding View and also handlers for Model events that would cause a change
+     *    in that View component.
      *
      * Depending on how the code develops we can revisit this.  The fact that Controller layer has
      * two purposes may end up getting unwieldy; if so, maybe move (a) into the responsibility of
@@ -65,6 +71,7 @@ public class MainWindow extends Application {
     private Stage stage;
 
     private final KernelUpdateTimer timer;
+    private final KernelLauncher kernelLauncher;
 
     private final Map<HeaderPaneButtonEvent.Type, Node> panes = new HashMap<>();
 
@@ -76,15 +83,17 @@ public class MainWindow extends Application {
 
     public MainWindow() {
         timer = new KernelUpdateTimer(Executors.newSingleThreadScheduledExecutor());
+        kernelLauncher = new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG /* TODO actual config */,
+                EventBusRegistry.INSTANCE);
     }
 
     /** This impl contains start-up code to make the GUI more fancy.  Lifted from aion_ui.  */
     @Override
     public void start(Stage stage) throws Exception {
         // Set up Cfg and Logger
-        CfgAion cfg = CfgAion.inst();
-        initLogger(cfg);
-        LOG.debug("Starting UI");
+//        CfgAion cfg = CfgAion.inst();
+//        initLogger(cfg);
+        LOG.info("Starting UI");
 
         // Set up JavaFX stage and root
         this.stage = stage;
@@ -110,13 +119,15 @@ public class MainWindow extends Application {
 
         // Set up event bus
         registerEventBusConsumer();
+
+        kernelLauncher.tryResume();
     }
 
     private FXMLLoader loader() {
         FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
         loader.setControllerFactory(new ControllerFactory()
                 .withKernelConnection(KernelConnection.createDefaultConnection())
-                .withKernelLauncher(new KernelLauncher(CfgGuiLauncher.AUTODETECTING_CONFIG /* TODO actual config */))
+                .withKernelLauncher(kernelLauncher)
                 .withTimer(timer)
         );
         return loader;
@@ -139,8 +150,8 @@ public class MainWindow extends Application {
     }
 
     private void registerEventBusConsumer() {
-        EventBusRegistry.getBus(WindowControlsEvent.ID).register(this);
-        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).register(this);
+        EventBusRegistry.INSTANCE.getBus(WindowControlsEvent.ID).register(this);
+//        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).register(this);
     }
 
     private void handleMouseDragged(final MouseEvent event) {

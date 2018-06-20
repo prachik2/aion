@@ -5,7 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import org.aion.gui.controller.AbstractController;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.gui.controller.KernelConnection;
+import org.aion.gui.model.KernelConnection;
 
 import java.net.URL;
 import java.util.ResourceBundle;

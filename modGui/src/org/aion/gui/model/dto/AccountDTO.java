@@ -1,4 +1,4 @@
-package org.aion.gui.model;
+package org.aion.gui.model.dto;
 
 //import org.aion.base.util.TypeConverter;
 

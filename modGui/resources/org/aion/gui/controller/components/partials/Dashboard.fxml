@@ -49,21 +49,21 @@
         alignment="center" hgap="50" vgap="10" 
         GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="3"
     >
-        <Label text="Connection status: " alignment="CENTER" 
+        <Label text="Kernel status: " alignment="CENTER"
             GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.columnSpan="1"/>
-        <Label text="--" alignment="CENTER" 
+        <Label fx:id="kernelStatusLabel" text="Not running" alignment="CENTER"
             GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.columnSpan="1"/>
         <Label text="Peers: " alignment="CENTER" 
             GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="1"/>
-        <Label text="--" alignment="CENTER" 
+        <Label fx:id="numPeersLabel" text="--" alignment="CENTER"
             GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.columnSpan="1"/>
-        <Label text="Solutions/sec: " alignment="CENTER" 
+        <Label text="Mining: " alignment="CENTER"
             GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="1"/>
-        <Label text="--" alignment="CENTER" 
+        <Label fx:id="isMining" text="--" alignment="CENTER"
             GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.columnSpan="1"/>
         <Label text="Blocks: " alignment="CENTER" 
             GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.columnSpan="1"/>
-        <Label text="--" alignment="CENTER" 
+        <Label fx:id="blocksLabel" text="--" alignment="CENTER"
             GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.columnSpan="1"/>
     </GridPane>
 

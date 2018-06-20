@@ -7,11 +7,14 @@ import java.util.Map;
 
 public class EventBusRegistry {
 
-    private static final EventBusRegistry INSTANCE = new EventBusRegistry();
+    // FIXME: Be consistent about where these constans are stored and what warrants its own EventBus
+    public static final String KERNEL_BUS = "KernelBus";
+
+    public static final EventBusRegistry INSTANCE = new EventBusRegistry();
 
     private final Map<String, EventBus> busMap = new HashMap<>();
 
-    public static EventBus getBus(final String identifier) {
+    public EventBus getBus(final String identifier) {
         return INSTANCE.getBusById(identifier);
     }
 

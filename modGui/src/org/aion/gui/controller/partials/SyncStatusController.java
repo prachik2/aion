@@ -3,11 +3,11 @@ package org.aion.gui.controller.partials;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import org.aion.gui.model.SyncInfoDTO;
 import org.aion.gui.controller.AbstractController;
+import org.aion.gui.model.KernelConnection;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.gui.controller.KernelConnection;
-import org.aion.wallet.util.SyncStatusFormatter;
+import org.aion.gui.model.dto.SyncInfoDTO;
+import org.aion.gui.util.SyncStatusFormatter;
 
 import java.net.URL;
 import java.util.ResourceBundle;

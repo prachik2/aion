@@ -1,6 +1,6 @@
-package org.aion.wallet.util;
+package org.aion.gui.util;
 
-import org.aion.gui.model.SyncInfoDTO;
+import org.aion.gui.model.dto.SyncInfoDTO;
 
 public class SyncStatusFormatter {
 

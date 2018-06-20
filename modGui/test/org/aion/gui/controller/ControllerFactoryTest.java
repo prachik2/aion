@@ -3,6 +3,7 @@ package org.aion.gui.controller;
 import org.aion.gui.controller.partials.ConnectivityStatusController;
 import org.aion.gui.controller.partials.PeerCountController;
 import org.aion.gui.controller.partials.SyncStatusController;
+import org.aion.gui.model.KernelConnection;
 import org.aion.os.KernelLauncher;
 import org.junit.Before;
 import org.junit.Test;

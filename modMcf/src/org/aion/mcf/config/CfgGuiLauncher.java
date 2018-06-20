@@ -16,6 +16,8 @@ public class CfgGuiLauncher {
     private String workingDir;
     private boolean keepKernelOnExit;
 
+    private String kernelPidFile;
+
     /**
      * Instance of a configuration that uses autodetection.  Provided here for convenience.
      */
@@ -109,5 +111,15 @@ public class CfgGuiLauncher {
     /** @param keepKernelOnExit whether a launched kernel should keep running after GUI exits */
     public void setKeepKernelOnExit(boolean keepKernelOnExit) {
         this.keepKernelOnExit = keepKernelOnExit;
+    }
+
+    /** @return path to kernel pid file */
+    public String getKernelPidFile() {
+        return kernelPidFile;
+    }
+
+    /** @param kernelPidFile path to kernel pid file */
+    public void setKernelPidFile(String kernelPidFile) {
+        this.kernelPidFile = kernelPidFile;
     }
 }

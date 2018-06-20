@@ -37,7 +37,7 @@ public abstract class AbstractController implements Initializable {
     }
 
     protected void registerEventBusConsumer() {
-        EventBusRegistry.getBus(DataUpdater.UI_DATA_REFRESH).register(this);
+        EventBusRegistry.INSTANCE.getBus(DataUpdater.UI_DATA_REFRESH).register(this);
     }
 
     @Subscribe

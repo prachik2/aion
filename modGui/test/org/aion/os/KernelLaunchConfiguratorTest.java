@@ -24,7 +24,9 @@ public class KernelLaunchConfiguratorTest {
         String expectedWorkingDir = System.getProperty("user.dir");
         String expectedAionSh = String.format("%s/aion.sh", expectedWorkingDir);
 
-        unit.configureAutomatically(processBuilder);
+        CfgGuiLauncher cfg = new CfgGuiLauncher();
+        cfg.setAutodetectJavaRuntime(true);
+        unit.configure(cfg, processBuilder);
 
         assertThat(processBuilder.directory(), is(new File(expectedWorkingDir)));
         assertThat(processBuilder.environment().get("JAVA_HOME"), is(expectedJavaHome));
@@ -42,7 +44,7 @@ public class KernelLaunchConfiguratorTest {
         config.setWorkingDir("workingDir");
         config.setJavaHome("javaHome");
 
-        unit.configureManually(processBuilder, config);
+        unit.configure(config, processBuilder);
 
         assertThat(processBuilder.directory(), is(new File(config.getWorkingDir())));
         assertThat(processBuilder.environment().get("JAVA_HOME"), is(config.getJavaHome()));

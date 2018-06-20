@@ -4,6 +4,8 @@ import javafx.util.Callback;
 import org.aion.gui.controller.partials.ConnectivityStatusController;
 import org.aion.gui.controller.partials.PeerCountController;
 import org.aion.gui.controller.partials.SyncStatusController;
+import org.aion.gui.model.KernelConnection;
+import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.os.KernelLauncher;
 import org.slf4j.Logger;
 

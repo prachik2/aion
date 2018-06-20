@@ -1,4 +1,4 @@
-package org.aion.wallet.util;
+package org.aion.gui.util;
 
 import java.math.BigInteger;
 

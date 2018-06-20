@@ -1,4 +1,6 @@
-package org.aion.gui.model;
+package org.aion.gui.model.dto;
+
+import org.aion.gui.model.ApiType;
 
 import java.util.Optional;
 import java.util.Properties;

@@ -1,15 +1,17 @@
-package org.aion.gui.controller;
+package org.aion.gui.model;
 
 import org.aion.api.IAionAPI;
 import org.aion.api.impl.AionAPIImpl;
 import org.aion.api.type.SyncInfo;
-import org.aion.gui.model.SyncInfoDTO;
-import org.aion.gui.model.LightAppSettings;
-import org.aion.gui.model.ApiType;
 import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
+import org.aion.gui.model.dto.LightAppSettings;
+import org.aion.gui.model.dto.SyncInfoDTO;
+import org.aion.log.AionLoggerFactory;
+import org.slf4j.Logger;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,11 +26,16 @@ public class KernelConnection {
 
     private Future<?> connectionFuture;
 
+    private Future<?> disconnectionFuture;
+
     private LightAppSettings lightAppSettings = getLightweightWalletSettings(ApiType.JAVA);
 
     private final ReentrantLock lock = new ReentrantLock();
 
     private final IAionAPI api;
+
+    private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
+
 
     /**
      * Constructor.  See also {@link #createDefaultConnection()}.
@@ -38,8 +45,8 @@ public class KernelConnection {
     public KernelConnection(IAionAPI aionApi) {
         this.api = aionApi;
 
-        EventBusRegistry.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
-        EventBusRegistry.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
+        EventBusRegistry.INSTANCE.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
+        EventBusRegistry.INSTANCE.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
     }
 
     /**
@@ -65,10 +72,18 @@ public class KernelConnection {
     }
 
     public void disconnect() {
+        connectionFuture.cancel(true);
+        if(!api.isConnected()) {
+            return;
+        }
+
 //        storeLightweightWalletSettings(lightAppSettings);
         lock();
         try {
-            api.destroyApi().getObject();
+            // TODO Is this going to do something weird, like not exit in time and
+            // then the underlying API starts throwing exceptions about invalid message length
+            // because it's still trying to talk to the kernel?
+            disconnectionFuture = backgroundExecutor.submit(() -> api.destroyApi().getObject() );
         } finally {
             unLock();
         }
@@ -152,6 +167,7 @@ public class KernelConnection {
         try {
             if (api.isConnected()) {
                 size = ((List) api.getNet().getActiveNodes().getObject()).size();
+                LOG.info("getPeerCount() size = {}", size);
             } else {
                 size = 0;
             }
@@ -159,6 +175,21 @@ public class KernelConnection {
             unLock();
         }
         return size;
+    }
+
+    public Optional<Boolean> isMining() {
+        final int size;
+        lock();
+        try {
+            if (api.isConnected()) {
+                // TODO seems a little fragile
+                return Optional.ofNullable(api.getMine().isMining().getObject());
+            } else {
+                return Optional.empty();
+            }
+        } finally {
+            unLock();
+        }
     }
 
 }

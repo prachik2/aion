@@ -14,11 +14,11 @@ public class DataUpdater extends TimerTask {
 
     public static final String UI_DATA_REFRESH = "gui.data_refresh";
 
-    private final EventBus eventBus = EventBusRegistry.getBus(UI_DATA_REFRESH);
+    private final EventBus eventBus = EventBusRegistry.INSTANCE.getBus(UI_DATA_REFRESH);
 
     @Override
     public void run() {
-        LOG.info("tick...");// FIXME Delete.
+        LOG.trace("tick...");// FIXME Delete.
         Platform.runLater(() -> eventBus.post(new RefreshEvent(RefreshEvent.Type.TIMER)));
     }
 }

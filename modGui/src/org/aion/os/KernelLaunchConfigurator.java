@@ -15,9 +15,20 @@ public class KernelLaunchConfigurator {
      * Parameters on the ProcessBuilder that clash with the parameters that this method is trying
      * to set will be overwritten, but others will be left alone.
      *
+     * @param config configuration
      * @param processBuilder object in which parameters will be applied
      */
-    public void configureAutomatically(ProcessBuilder processBuilder) {
+    public void configure(CfgGuiLauncher config, ProcessBuilder processBuilder) {
+        if(config.isAutodetectJavaRuntime()) {
+            configureAutomatically(processBuilder);
+        } else {
+            configureManually(config, processBuilder);
+        }
+
+        processBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+    }
+
+    private void configureAutomatically(ProcessBuilder processBuilder) {
         CfgGuiLauncher config = new CfgGuiLauncher();
         String javaHome = System.getProperty("java.home");
         String workingDir = System.getProperty("user.dir");
@@ -25,19 +36,10 @@ public class KernelLaunchConfigurator {
         config.setJavaHome(javaHome);
         config.setWorkingDir(workingDir);
         config.setAionSh(String.format("%s/aion.sh", workingDir)); // will this blow up on Windows?
-        configureManually(processBuilder, config);
+        configureManually(config, processBuilder);
     }
 
-    /**
-     * Set parameters on a {@link ProcessBuilder} to configure it so it is ready to launch kernel.
-     *
-     * Parameters on the ProcessBuilder that clash with the parameters that this method is trying
-     * to set will be overwritten, but others will be left alone.
-     *
-     * @param processBuilder object in which parameters will be applied
-     * @param config configuration parameters
-     */
-    public void configureManually(ProcessBuilder processBuilder, CfgGuiLauncher config) {
+    private void configureManually(CfgGuiLauncher config, ProcessBuilder processBuilder) {
         Map<String, String> envVars = processBuilder.environment();
         envVars.put("JAVA_HOME", config.getJavaHome());
         processBuilder.directory(new File(config.getWorkingDir()));

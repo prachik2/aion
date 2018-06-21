@@ -61,27 +61,27 @@ public class KernelConnection {
         return new KernelConnection(AionAPIImpl.inst());
     }
 
-//    public void connect() {
-//        if (connectionFuture != null) {
-//            connectionFuture.cancel(true);
-//        }
-//        connectionFuture = backgroundExecutor.submit(() -> {
-//            synchronized (api) {
-//                api.connect(getConnectionString(), true);
-//            }
-//            EventPublisher.fireOperationFinished();
-//        });
-//    }
-
     public void connect() {
         if (connectionFuture != null) {
             connectionFuture.cancel(true);
         }
         connectionFuture = backgroundExecutor.submit(() -> {
-            api.connect(getConnectionString(), true);
+            synchronized (api) {
+                api.connect(getConnectionString(), true);
+            }
             EventPublisher.fireOperationFinished();
         });
     }
+
+//    public void connect() {
+//        if (connectionFuture != null) {
+//            connectionFuture.cancel(true);
+//        }
+//        connectionFuture = backgroundExecutor.submit(() -> {
+//            api.connect(getConnectionString(), true);
+//            EventPublisher.fireOperationFinished();
+//        });
+//    }
 
     public void disconnect() {
         connectionFuture.cancel(true);

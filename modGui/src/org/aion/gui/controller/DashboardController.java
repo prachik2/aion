@@ -15,6 +15,7 @@ import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.gui.model.dto.SyncInfoDTO;
+import org.aion.gui.model.dto.SyncInfoDTO2;
 import org.aion.gui.util.DataUpdater;
 import org.aion.gui.util.SyncStatusFormatter;
 import org.aion.log.AionLoggerFactory;
@@ -31,7 +32,7 @@ public class DashboardController extends AbstractController {
     private final KernelUpdateTimer kernelUpdateTimer;
 
     private final MiningStatusRetriever miningStatusRetriever;
-//    private final SyncInfoDTO syncInfoDTO;
+    private final SyncInfoDTO2 syncInfoDTO2;
 
     @FXML private Button launchKernelButton;
     @FXML private Button terminateKernelButton;
@@ -48,13 +49,13 @@ public class DashboardController extends AbstractController {
     public DashboardController(KernelLauncher kernelLauncher,
                                KernelConnection kernelConnection,
                                KernelUpdateTimer kernelUpdateTimer,
-                               MiningStatusRetriever miningStatusRetriever/*,
-                               SyncInfoDTO syncInfoDTO*/) {
+                               MiningStatusRetriever miningStatusRetriever,
+                               SyncInfoDTO2 syncInfoDTO2) {
         this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
         this.kernelUpdateTimer = kernelUpdateTimer;
         this.miningStatusRetriever = miningStatusRetriever;
-        //this.syncInfoDTO = syncInfoDTO;
+        this.syncInfoDTO2 = syncInfoDTO2;
     }
 
     @Override
@@ -87,6 +88,7 @@ public class DashboardController extends AbstractController {
     private void handleUiTimerTick(RefreshEvent event) {
         LOG.trace("handleUiTimerTick");
 
+
         if (RefreshEvent.Type.TIMER.equals(event.getType())) {
             // peer count
             final Task<Integer> getPeerCountTask = getApiTask(o -> kernelConnection.getPeerCount(), null);
@@ -98,10 +100,12 @@ public class DashboardController extends AbstractController {
             );
 
 //             sync status
-            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernelConnection.getSyncInfo(), null);
+//            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernelConnection.getSyncInfo(), null);
 
-//            syncInfoDTO.loadFromApi();
+//            syncInfoDTO2.loadFromApi();
 //            blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO)));
+
+            Task<SyncInfoDTO2> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
             runApiTask(
                     getSyncInfoTask,
                     evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(getSyncInfoTask.getValue()))),
@@ -109,12 +113,27 @@ public class DashboardController extends AbstractController {
                     getEmptyEvent()
             );
 
-            Optional<Boolean> maybeIsMining = miningStatusRetriever.isMining();
-            if(maybeIsMining.isPresent()) {
-                isMining.setText(String.valueOf(maybeIsMining.get()));
-            } else {
-                isMining.setText("<unknown>");
-            }
+//            runApiTask(
+//                    getSyncInfoTask,
+//                    evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(getSyncInfoTask.getValue()))),
+//                    getErrorEvent(throwable -> {}, getSyncInfoTask),
+//                    getEmptyEvent()
+//            );
+
+            Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> miningStatusRetriever.isMining(), null);
+            runApiTask(
+                    getMiningStatusTask,
+                    evt -> isMining.setText(String.valueOf(getMiningStatusTask.getValue().get())),
+                    getErrorEvent(throwable -> {}, getSyncInfoTask),
+                    getEmptyEvent()
+            );
+
+//            Optional<Boolean> maybeIsMining = miningStatusRetriever.isMining();
+//            if(maybeIsMining.isPresent()) {
+//                isMining.setText(String.valueOf(maybeIsMining.get()));
+//            } else {
+//                isMining.setText("<unknown>");
+//            }
         }
     }
 

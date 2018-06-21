@@ -1,6 +1,7 @@
 package org.aion.gui.util;
 
 import org.aion.gui.model.dto.SyncInfoDTO;
+import org.aion.gui.model.dto.SyncInfoDTO2;
 
 public class SyncStatusFormatter {
 
@@ -29,6 +30,10 @@ public class SyncStatusFormatter {
     }
 
     public static String formatSyncStatusByBlockNumbers(SyncInfoDTO syncInfo) {
+        return syncInfo.getChainBestBlkNumber() + "/" + syncInfo.getNetworkBestBlkNumber() + " total blocks";
+    }
+
+    public static String formatSyncStatusByBlockNumbers(SyncInfoDTO2 syncInfo) {
         return syncInfo.getChainBestBlkNumber() + "/" + syncInfo.getNetworkBestBlkNumber() + " total blocks";
     }
 

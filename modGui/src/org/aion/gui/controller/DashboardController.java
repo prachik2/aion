@@ -86,32 +86,32 @@ public class DashboardController extends AbstractController {
     @Subscribe
     private void handleUiTimerTick(RefreshEvent event) {
         LOG.trace("handleUiTimerTick");
-        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
-            // peer count
-            final Task<Optional<Integer>> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
-            runApiTask(
-                    getPeerCountTask,
-                    evt -> numPeersLabel.setText(displayStringOfOptional(getPeerCountTask.getValue())),
-                    getErrorEvent(throwable -> {}, getPeerCountTask),
-                    getEmptyEvent()
-            );
-            // sync status
-            Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
-            runApiTask(
-                    getSyncInfoTask,
-                    evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO2))),
-                    getErrorEvent(throwable -> {}, getSyncInfoTask),
-                    getEmptyEvent()
-            );
-            // mining status
-            Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
-            runApiTask(
-                    getMiningStatusTask,
-                    evt -> isMining.setText(displayStringOfOptional(getMiningStatusTask.getValue())),
-                    getErrorEvent(throwable -> {}, getSyncInfoTask),
-                    getEmptyEvent()
-            );
-        }
+//        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
+        // peer count
+        final Task<Optional<Integer>> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
+        runApiTask(
+                getPeerCountTask,
+                evt -> numPeersLabel.setText(displayStringOfOptional(getPeerCountTask.getValue())),
+                getErrorEvent(throwable -> {}, getPeerCountTask),
+                getEmptyEvent()
+        );
+        // sync status
+        Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
+        runApiTask(
+                getSyncInfoTask,
+                evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO2))),
+                getErrorEvent(throwable -> {}, getSyncInfoTask),
+                getEmptyEvent()
+        );
+        // mining status
+        Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
+        runApiTask(
+                getMiningStatusTask,
+                evt -> isMining.setText(displayStringOfOptional(getMiningStatusTask.getValue())),
+                getErrorEvent(throwable -> {}, getSyncInfoTask),
+                getEmptyEvent()
+        );
+//        }
     }
 
     private String displayStringOfOptional(Optional<?> opt) {

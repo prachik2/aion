@@ -36,9 +36,8 @@ public class MainWindow extends Application {
     /*
      * Implementation/design notes:
      *
-     * The GUI application code uses a variation of MVC, with PubSub pattern facilitating
-     * communication between view and model.  For us, we'll divide up the responsibilities as
-     * into the following layers:
+     * The GUI application code uses a variation of MVC.  For us, we'll divide up the
+     * responsibilities into the following layers:
      *
      * 1) Model: any class that interfaces with components outside of the GUI; i.e. KernelLauncher
      *    for interface with the OS to launch processes; KernelConnection provides interface to
@@ -47,19 +46,21 @@ public class MainWindow extends Application {
      *
      * 2) View: the layer that contains the UI elements; i.e. all of the JavaFX .fxml files.  The
      *    elements in the View (i.e. a Button) have associated handler methods, which are part of
-     *    Controller.  Through these associated methods, View knows about Controller and can
-     *    delegate control to classes/methods in Controller.  The View is very "dumb" and doesn't
+     *    Controller.  Through these associated methods, View knows about Controller and
+     *    delegates control to classes/methods in Controller.  The View is very "dumb" and doesn't
      *    have logic to modify itself.
      *
      * 3) Controller: this layer mediates interaction between Model and View by serving two purposes:
-     *      (a) Contains handlers to which the View is registered.  Usually these handlers manipulate
-     *          Model through some simple call.  Complex logic should live in the Model.
-     *      (b) Subscribe to events emitted by Model and update View accordingly.  Events that it may
-     *          need to handle include kernel state change (e.g. # of peers).
+     *      (a) Contains handlers to which the View is registered (through the view's FXML).
+     *          Usually these handlers manipulate Model through some method call.  The heavy
+     *          lifting of the logic should live in Model.
+     *      (b) Subscribe to events published by Model and update View accordingly.  Events that it
+     *          may need to handle include kernel state change (e.g. # of peers).  EventBus is the
+     *          mechanism used to facilitate PubSub pattern.
      *    Generally, each View component has one or zero accompanying classes that are part of the
-     *    Controller layer (usually a class name ending with "Controller").  Within it are the handlers
-     *    for its corresponding View and also handlers for Model events that would cause a change
-     *    in that View component.
+     *    Controller layer (usually a class name ending with "Controller").  Within it are the
+     *    handlers for its corresponding View and also handlers for Model events that would cause a
+     *    change in that View component.
      *
      * Depending on how the code develops we can revisit this.  The fact that Controller layer has
      * two purposes may end up getting unwieldy; if so, maybe move (a) into the responsibility of

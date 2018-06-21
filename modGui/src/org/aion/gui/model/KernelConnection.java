@@ -61,6 +61,18 @@ public class KernelConnection {
         return new KernelConnection(AionAPIImpl.inst());
     }
 
+//    public void connect() {
+//        if (connectionFuture != null) {
+//            connectionFuture.cancel(true);
+//        }
+//        connectionFuture = backgroundExecutor.submit(() -> {
+//            synchronized (api) {
+//                api.connect(getConnectionString(), true);
+//            }
+//            EventPublisher.fireOperationFinished();
+//        });
+//    }
+
     public void connect() {
         if (connectionFuture != null) {
             connectionFuture.cancel(true);
@@ -78,6 +90,8 @@ public class KernelConnection {
         }
 
 //        storeLightweightWalletSettings(lightAppSettings);
+
+
         lock();
         try {
             // TODO Is this going to do something weird, like not exit in time and
@@ -87,6 +101,13 @@ public class KernelConnection {
         } finally {
             unLock();
         }
+//
+//        disconnectionFuture = backgroundExecutor.submit(() -> {
+//            synchronized (api) {
+//                api.destroyApi().getObject();
+//            }
+//        });
+
     }
 
     protected final void lock(){
@@ -113,6 +134,7 @@ public class KernelConnection {
     }
 
     public SyncInfoDTO getSyncInfo() {
+
         long chainBest;
         long netBest;
         SyncInfo syncInfo;
@@ -158,12 +180,16 @@ public class KernelConnection {
         } finally {
             unLock();
         }
+//        synchronized (api) {
+//            connected = api.isConnected();
+//        }
         return connected;
     }
 
     public int getPeerCount() {
         final int size;
         lock();
+//        synchronized (api) {
         try {
             if (api.isConnected()) {
                 size = ((List) api.getNet().getActiveNodes().getObject()).size();
@@ -171,25 +197,21 @@ public class KernelConnection {
             } else {
                 size = 0;
             }
+//        }
         } finally {
             unLock();
         }
+
+
+
         return size;
     }
 
-    public Optional<Boolean> isMining() {
-        final int size;
-        lock();
-        try {
-            if (api.isConnected()) {
-                // TODO seems a little fragile
-                return Optional.ofNullable(api.getMine().isMining().getObject());
-            } else {
-                return Optional.empty();
-            }
-        } finally {
-            unLock();
-        }
+    /**
+     * Should only be used by AbstractAionApiClient
+     */
+    IAionAPI getApi() {
+        return this.api;
     }
 
 }

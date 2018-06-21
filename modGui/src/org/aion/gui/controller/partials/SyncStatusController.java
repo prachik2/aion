@@ -29,15 +29,17 @@ public class SyncStatusController extends AbstractController {
 
     @Override
     protected final void refreshView(final RefreshEvent event) {
-        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
-            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernel.getSyncInfo(), null);
-            runApiTask(
-                    getSyncInfoTask,
-                    evt -> setSyncStatus(getSyncInfoTask.getValue()),
-                    getErrorEvent(throwable -> {}, getSyncInfoTask),
-                    getEmptyEvent()
-            );
-        }
+        // FIXME put me back
+
+//        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
+//            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernel.getSyncInfo(), null);
+//            runApiTask(
+//                    getSyncInfoTask,
+//                    evt -> setSyncStatus(getSyncInfoTask.getValue()),
+//                    getErrorEvent(throwable -> {}, getSyncInfoTask),
+//                    getEmptyEvent()
+//            );
+//        }
     }
 
     private void setSyncStatus(SyncInfoDTO syncInfo) {

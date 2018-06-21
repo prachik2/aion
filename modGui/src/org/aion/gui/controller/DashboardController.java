@@ -10,6 +10,7 @@ import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.KernelProcEvent;
 import org.aion.gui.events.RefreshEvent;
+import org.aion.gui.model.MiningStatusRetriever;
 import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
@@ -29,6 +30,9 @@ public class DashboardController extends AbstractController {
     private final KernelConnection kernelConnection;
     private final KernelUpdateTimer kernelUpdateTimer;
 
+    private final MiningStatusRetriever miningStatusRetriever;
+//    private final SyncInfoDTO syncInfoDTO;
+
     @FXML private Button launchKernelButton;
     @FXML private Button terminateKernelButton;
 
@@ -43,10 +47,14 @@ public class DashboardController extends AbstractController {
 
     public DashboardController(KernelLauncher kernelLauncher,
                                KernelConnection kernelConnection,
-                               KernelUpdateTimer kernelUpdateTimer) {
+                               KernelUpdateTimer kernelUpdateTimer,
+                               MiningStatusRetriever miningStatusRetriever/*,
+                               SyncInfoDTO syncInfoDTO*/) {
         this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
         this.kernelUpdateTimer = kernelUpdateTimer;
+        this.miningStatusRetriever = miningStatusRetriever;
+        //this.syncInfoDTO = syncInfoDTO;
     }
 
     @Override
@@ -89,8 +97,11 @@ public class DashboardController extends AbstractController {
                     getEmptyEvent()
             );
 
-            // sync status
+//             sync status
             final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernelConnection.getSyncInfo(), null);
+
+//            syncInfoDTO.loadFromApi();
+//            blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO)));
             runApiTask(
                     getSyncInfoTask,
                     evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(getSyncInfoTask.getValue()))),
@@ -98,7 +109,7 @@ public class DashboardController extends AbstractController {
                     getEmptyEvent()
             );
 
-            Optional<Boolean> maybeIsMining = kernelConnection.isMining();
+            Optional<Boolean> maybeIsMining = miningStatusRetriever.isMining();
             if(maybeIsMining.isPresent()) {
                 isMining.setText(String.valueOf(maybeIsMining.get()));
             } else {

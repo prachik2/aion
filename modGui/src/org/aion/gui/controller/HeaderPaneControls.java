@@ -10,14 +10,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
-import org.aion.log.AionLoggerFactory;
-import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.wallet.util.BalanceUtils;
-import org.aion.wallet.util.UIUtils;
+import org.aion.gui.model.dto.AccountDTO;
+import org.aion.gui.util.BalanceUtils;
+import org.aion.gui.util.UIUtils;
+import org.aion.log.AionLoggerFactory;
+import org.aion.log.LogEnum;
 import org.slf4j.Logger;
 
 import java.awt.*;
@@ -32,7 +33,7 @@ import java.util.ResourceBundle;
 
 public class HeaderPaneControls extends AbstractController {
 
-    private static final Logger log = AionLoggerFactory.getLogger(/*LogEnum.WLT.name() FIXME */ "HeaderPaneControls");
+    private static final Logger log = AionLoggerFactory.getLogger(LogEnum.GUI.name());
 
     private static final String AION_URL = "http://www.aion.network";
 

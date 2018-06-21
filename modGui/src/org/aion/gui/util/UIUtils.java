@@ -1,4 +1,4 @@
-package org.aion.wallet.util;
+package org.aion.gui.util;
 
 import javafx.scene.control.TextField;
 import javafx.scene.text.Font;

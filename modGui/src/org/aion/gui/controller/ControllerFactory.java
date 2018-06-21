@@ -6,6 +6,8 @@ import org.aion.gui.controller.partials.PeerCountController;
 import org.aion.gui.controller.partials.SyncStatusController;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
+import org.aion.gui.model.MiningStatusRetriever;
+import org.aion.gui.model.dto.SyncInfoDTO;
 import org.aion.os.KernelLauncher;
 import org.slf4j.Logger;
 
@@ -45,7 +47,12 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
     public ControllerFactory() {
         this.builderChooser = new HashMap<>() {{
             put(DashboardController.class, () -> new DashboardController(
-                    kernelLauncher, kernelConnection, kernelUpdateTimer));
+                    kernelLauncher,
+                    kernelConnection,
+                    kernelUpdateTimer,
+                    new MiningStatusRetriever(kernelConnection)/*,
+                    new SyncInfoDTO(kernelConnection)*/
+            ));
             put(SettingsController.class, () -> new SettingsController(
                     kernelConnection));
             put(ConnectivityStatusController.class, () -> new ConnectivityStatusController(

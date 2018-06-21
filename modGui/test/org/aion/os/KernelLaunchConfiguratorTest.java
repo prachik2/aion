@@ -5,6 +5,9 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.hamcrest.Matchers.is;
 
 import static org.junit.Assert.assertThat;
@@ -22,7 +25,10 @@ public class KernelLaunchConfiguratorTest {
         // method uses whatever values are in those System static methods.
         String expectedJavaHome = System.getProperty("java.home");
         String expectedWorkingDir = System.getProperty("user.dir");
-        String expectedAionSh = String.format("%s/aion.sh", expectedWorkingDir);
+        List<String> expectedAionSh = Arrays.asList(
+                String.format("%s/script/nohup_wrapper.sh", expectedWorkingDir),
+                String.format("%s/aion.sh", expectedWorkingDir)
+        );
 
         CfgGuiLauncher cfg = new CfgGuiLauncher();
         cfg.setAutodetectJavaRuntime(true);
@@ -30,8 +36,7 @@ public class KernelLaunchConfiguratorTest {
 
         assertThat(processBuilder.directory(), is(new File(expectedWorkingDir)));
         assertThat(processBuilder.environment().get("JAVA_HOME"), is(expectedJavaHome));
-        assertThat(processBuilder.command().size(), is(1));
-        assertThat(processBuilder.command().get(0), is(expectedAionSh));
+        assertThat(processBuilder.command(), is(expectedAionSh));
     }
 
     @Test
@@ -48,7 +53,9 @@ public class KernelLaunchConfiguratorTest {
 
         assertThat(processBuilder.directory(), is(new File(config.getWorkingDir())));
         assertThat(processBuilder.environment().get("JAVA_HOME"), is(config.getJavaHome()));
-        assertThat(processBuilder.command().size(), is(1));
-        assertThat(processBuilder.command().get(0), is(config.getAionSh()));
+        assertThat(processBuilder.command(), is(Arrays.asList(
+                String.format("%s/script/nohup_wrapper.sh", config.getWorkingDir()),
+                String.format("%s/%s", config.getWorkingDir(), config.getAionSh())
+        )));
     }
 }

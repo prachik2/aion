@@ -4,6 +4,7 @@ import org.aion.gui.controller.partials.ConnectivityStatusController;
 import org.aion.gui.controller.partials.PeerCountController;
 import org.aion.gui.controller.partials.SyncStatusController;
 import org.aion.gui.model.KernelConnection;
+import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.os.KernelLauncher;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,21 +16,25 @@ import static org.mockito.Mockito.mock;
 public class ControllerFactoryTest {
     private KernelConnection kernelConnection;
     private KernelLauncher kernelLauncher;
+    private KernelUpdateTimer kernelUpdateTimer;
 
     @Before
     public void before() {
         kernelConnection = mock(KernelConnection.class);
         kernelLauncher = mock(KernelLauncher.class);
+        kernelUpdateTimer = mock(KernelUpdateTimer.class);
     }
 
     @Test
     public void testSettersAndGetters() {
         ControllerFactory unit = new ControllerFactory()
                 .withKernelConnection(kernelConnection)
-                .withKernelLauncher(kernelLauncher);
+                .withKernelLauncher(kernelLauncher)
+                .withTimer(kernelUpdateTimer);
 
         assertThat(unit.getKernelConnection(), is(kernelConnection));
         assertThat(unit.getKernelLauncher(), is(kernelLauncher));
+        assertThat(unit.getTimer(), is(kernelUpdateTimer));
     }
 
     @Test

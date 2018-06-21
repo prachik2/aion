@@ -18,7 +18,6 @@ public class DataUpdater extends TimerTask {
 
     @Override
     public void run() {
-        LOG.trace("tick...");// FIXME Delete.
         Platform.runLater(() -> eventBus.post(new RefreshEvent(RefreshEvent.Type.TIMER)));
     }
 }

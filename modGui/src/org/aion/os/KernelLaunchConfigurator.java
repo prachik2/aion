@@ -8,6 +8,7 @@ import java.util.Map;
 /** Sets up configuration for launching kernel in a separate OS process. */
 public class KernelLaunchConfigurator {
     private static final String NOHUP_WRAPPER = "script/nohup_wrapper.sh";
+    private static final String DEFAULT_AION_SH = "aion.sh";
 
     /**
      * Set parameters on a {@link ProcessBuilder} to configure it so it is ready to launch kernel.
@@ -35,7 +36,7 @@ public class KernelLaunchConfigurator {
 
         config.setJavaHome(javaHome);
         config.setWorkingDir(workingDir);
-        config.setAionSh(String.format("%s/aion.sh", workingDir)); // will this blow up on Windows?
+        config.setAionSh(DEFAULT_AION_SH); // will this blow up on Windows?
         configureManually(config, processBuilder);
     }
 
@@ -48,7 +49,7 @@ public class KernelLaunchConfigurator {
         // to the GUI program, the spawned process will also be killed
         processBuilder.command(
                 String.format("%s/%s", config.getWorkingDir(), NOHUP_WRAPPER),
-                config.getAionSh()
+                String.format("%s/%s", config.getWorkingDir(), config.getAionSh())
         );
     }
 }

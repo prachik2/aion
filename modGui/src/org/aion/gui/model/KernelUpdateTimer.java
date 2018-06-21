@@ -5,7 +5,6 @@ import org.aion.gui.util.DataUpdater;
 import org.aion.log.AionLoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -22,11 +21,6 @@ public class KernelUpdateTimer {
     public void fireImmediatelyAndThenStart() {
         new DataUpdater().run();
         start();
-    }
-
-    public void fireImmediatelyAndThenStop() {
-        new DataUpdater().run();
-        stop();
     }
 
     public void start() {

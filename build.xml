@@ -285,7 +285,6 @@
 		<ant inheritAll="false" antfile="${dir.workspace}/aion_api/build.xml" target="clean_build">
 			<property name="compile.debug" value="${compile.debug}" />
         </ant>
-        <echo message="copying aion_api" />
 
         <echo message="building modGui" />
 		<ant inheritAll="false" antfile="${dir.workspace}/modGui/build.xml" target="clean_build">

@@ -154,12 +154,13 @@ public class DashboardController extends AbstractController {
         try {
             if (kernelLauncher.hasLaunchedInstance()
                     || (!kernelLauncher.hasLaunchedInstance() && kernelLauncher.tryResume())) {
+                kernelUpdateTimer.stop();
                 kernelConnection.disconnect();
                 kernelLauncher.terminate();
-                kernelUpdateTimer.stop();
                 kernelStatusLabel.setText("Not running");
             }
         } catch (RuntimeException ex) {
+            LOG.error("Termination error", ex);
             enableLaunchButton();
 //            kernelUpdateTimer.fireImmediatelyAndThenStart();
         }

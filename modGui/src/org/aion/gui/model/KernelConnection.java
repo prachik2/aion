@@ -92,21 +92,21 @@ public class KernelConnection {
 //        storeLightweightWalletSettings(lightAppSettings);
 
 
-        lock();
-        try {
-            // TODO Is this going to do something weird, like not exit in time and
-            // then the underlying API starts throwing exceptions about invalid message length
-            // because it's still trying to talk to the kernel?
-            disconnectionFuture = backgroundExecutor.submit(() -> api.destroyApi().getObject() );
-        } finally {
-            unLock();
-        }
+//        lock();
+//        try {
+//            // TODO Is this going to do something weird, like not exit in time and
+//            // then the underlying API starts throwing exceptions about invalid message length
+//            // because it's still trying to talk to the kernel?
+//            disconnectionFuture = backgroundExecutor.submit(() -> api.destroyApi().getObject() );
+//        } finally {
+//            unLock();
+//        }
 //
-//        disconnectionFuture = backgroundExecutor.submit(() -> {
-//            synchronized (api) {
-//                api.destroyApi().getObject();
-//            }
-//        });
+        disconnectionFuture = backgroundExecutor.submit(() -> {
+            synchronized (api) {
+                api.destroyApi().getObject();
+            }
+        });
 
     }
 

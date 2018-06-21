@@ -43,17 +43,11 @@ public class SyncInfoDTO2 extends AbstractAionApiClient {
     }
 
 
-    public SyncInfoDTO2 loadFromApi() {
+    public Void loadFromApi() {
         Long chainBest;
         long netBest;
         SyncInfo syncInfo;
         try {
-//            lock();
-//            try {
-//                syncInfo = api.getNet().syncInfo().getObject();
-//            } finally {
-//                unLock();
-//            }
             ApiMsg msg = callApi(api -> api.getNet().syncInfo());
             if(msg.isError()) {
                 LOG.error(logStringForErrorApiMsg(msg));
@@ -73,11 +67,7 @@ public class SyncInfoDTO2 extends AbstractAionApiClient {
         setChainBestBlkNumber(chainBest);
         setNetworkBestBlkNumber(netBest);
 
-        // seems kind of stupid to do this, but need it temporarily
-        // due to how some adjacent code is written.  Will make this
-        // return void or something more intuitive once the adjacent
-        // code is refactored
-        return this;
+        return null;
     }
 
     private Long getLatest() {

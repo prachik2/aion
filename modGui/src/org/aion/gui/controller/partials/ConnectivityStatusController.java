@@ -31,6 +31,7 @@ public class ConnectivityStatusController extends AbstractController {
 
     @Override
     protected final void refreshView(final RefreshEvent event) {
+        /*
         if (RefreshEvent.Type.TIMER.equals(event.getType())) {
             final Task<Boolean> getConnectedStatusTask = getApiTask(o -> kernel.getConnectionStatusByConnectedPeers(), null);
             runApiTask(
@@ -39,6 +40,7 @@ public class ConnectivityStatusController extends AbstractController {
                     getErrorEvent(throwable -> {}, getConnectedStatusTask),
                     getEmptyEvent());
         }
+        */
     }
 
     private void setConnectivityLabel(boolean connected) {

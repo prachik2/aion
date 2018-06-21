@@ -3,12 +3,10 @@ package org.aion.gui.model;
 import org.aion.api.IAionAPI;
 import org.aion.api.type.ApiMsg;
 
-import java.util.Optional;
-
 /**
  * Provides access to an {@link IAionAPI} instance in a thread-safe manner.
  *
- * Example implementation: {@link MiningStatusRetriever}.
+ * Example implementation: {@link GeneralKernelInfoRetriever}.
  */
 public abstract class AbstractAionApiClient {
     private final IAionAPI api;

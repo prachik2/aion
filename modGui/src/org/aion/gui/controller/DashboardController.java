@@ -10,11 +10,10 @@ import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.KernelProcEvent;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.gui.model.MiningStatusRetriever;
+import org.aion.gui.model.GeneralKernelInfoRetriever;
 import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
-import org.aion.gui.model.dto.SyncInfoDTO;
 import org.aion.gui.model.dto.SyncInfoDTO2;
 import org.aion.gui.util.DataUpdater;
 import org.aion.gui.util.SyncStatusFormatter;
@@ -31,7 +30,7 @@ public class DashboardController extends AbstractController {
     private final KernelConnection kernelConnection;
     private final KernelUpdateTimer kernelUpdateTimer;
 
-    private final MiningStatusRetriever miningStatusRetriever;
+    private final GeneralKernelInfoRetriever generalKernelInfoRetriever;
     private final SyncInfoDTO2 syncInfoDTO2;
 
     @FXML private Button launchKernelButton;
@@ -49,12 +48,12 @@ public class DashboardController extends AbstractController {
     public DashboardController(KernelLauncher kernelLauncher,
                                KernelConnection kernelConnection,
                                KernelUpdateTimer kernelUpdateTimer,
-                               MiningStatusRetriever miningStatusRetriever,
+                               GeneralKernelInfoRetriever generalKernelInfoRetriever,
                                SyncInfoDTO2 syncInfoDTO2) {
         this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
         this.kernelUpdateTimer = kernelUpdateTimer;
-        this.miningStatusRetriever = miningStatusRetriever;
+        this.generalKernelInfoRetriever = generalKernelInfoRetriever;
         this.syncInfoDTO2 = syncInfoDTO2;
     }
 
@@ -87,53 +86,39 @@ public class DashboardController extends AbstractController {
     @Subscribe
     private void handleUiTimerTick(RefreshEvent event) {
         LOG.trace("handleUiTimerTick");
-
-
         if (RefreshEvent.Type.TIMER.equals(event.getType())) {
             // peer count
-            final Task<Integer> getPeerCountTask = getApiTask(o -> kernelConnection.getPeerCount(), null);
+            final Task<Optional<Integer>> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
             runApiTask(
                     getPeerCountTask,
-                    evt -> numPeersLabel.setText(String.valueOf(getPeerCountTask.getValue())),
+                    evt -> numPeersLabel.setText(displayStringOfOptional(getPeerCountTask.getValue())),
                     getErrorEvent(throwable -> {}, getPeerCountTask),
                     getEmptyEvent()
             );
-
-//             sync status
-//            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernelConnection.getSyncInfo(), null);
-
-//            syncInfoDTO2.loadFromApi();
-//            blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO)));
-
-            Task<SyncInfoDTO2> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
+            // sync status
+            Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
             runApiTask(
                     getSyncInfoTask,
-                    evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(getSyncInfoTask.getValue()))),
+                    evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO2))),
                     getErrorEvent(throwable -> {}, getSyncInfoTask),
                     getEmptyEvent()
             );
-
-//            runApiTask(
-//                    getSyncInfoTask,
-//                    evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(getSyncInfoTask.getValue()))),
-//                    getErrorEvent(throwable -> {}, getSyncInfoTask),
-//                    getEmptyEvent()
-//            );
-
-            Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> miningStatusRetriever.isMining(), null);
+            // mining status
+            Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
             runApiTask(
                     getMiningStatusTask,
-                    evt -> isMining.setText(String.valueOf(getMiningStatusTask.getValue().get())),
+                    evt -> isMining.setText(displayStringOfOptional(getMiningStatusTask.getValue())),
                     getErrorEvent(throwable -> {}, getSyncInfoTask),
                     getEmptyEvent()
             );
+        }
+    }
 
-//            Optional<Boolean> maybeIsMining = miningStatusRetriever.isMining();
-//            if(maybeIsMining.isPresent()) {
-//                isMining.setText(String.valueOf(maybeIsMining.get()));
-//            } else {
-//                isMining.setText("<unknown>");
-//            }
+    private String displayStringOfOptional(Optional<?> opt) {
+        if(!opt.isPresent()) {
+            return "<unknown>";
+        } else {
+            return String.valueOf(opt.get());
         }
     }
 
@@ -142,7 +127,7 @@ public class DashboardController extends AbstractController {
         LOG.trace("handleKernelLaunched");
         kernelConnection.connect(); // TODO: what if we launched the process but can't connect?
         kernelStatusLabel.setText("Running");
-        kernelUpdateTimer.fireImmediatelyAndThenStart(); // should actually wait until connect() happens
+        kernelUpdateTimer.start(); // should actually wait until connect() happens
         enableTerminateButton();
     }
 

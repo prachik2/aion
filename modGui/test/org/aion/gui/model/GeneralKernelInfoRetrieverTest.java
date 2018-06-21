@@ -10,7 +10,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MiningStatusRetrieverTest {
+public class GeneralKernelInfoRetrieverTest {
     @Test
     public void testSuccess() throws Exception {
         KernelConnection kc = mock(KernelConnection.class);
@@ -23,7 +23,7 @@ public class MiningStatusRetrieverTest {
         when(msg.isError()).thenReturn(false);
         when(msg.getObject()).thenReturn(Boolean.valueOf(true));
 
-        MiningStatusRetriever unit = new MiningStatusRetriever(kc);
+        GeneralKernelInfoRetriever unit = new GeneralKernelInfoRetriever(kc);
         assertThat(unit.isMining().get(), is(true));
     }
 
@@ -40,7 +40,7 @@ public class MiningStatusRetrieverTest {
         when(msg.getErrorCode()).thenReturn(31337);
         when(msg.isError()).thenReturn(true);
 
-        MiningStatusRetriever unit = new MiningStatusRetriever(kc);
+        GeneralKernelInfoRetriever unit = new GeneralKernelInfoRetriever(kc);
         assertThat(unit.isMining().isPresent(), is(false));
     }
 }

@@ -29,7 +29,8 @@ public class KernelUpdateTimer {
             execution = timer.scheduleAtFixedRate(
                     new DataUpdater(),
                     AionConstants.BLOCK_MINING_TIME_MILLIS,
-                    3 * AionConstants.BLOCK_MINING_TIME_MILLIS,
+//                    3 * AionConstants.BLOCK_MINING_TIME_MILLIS,
+                    AionConstants.BLOCK_MINING_TIME_MILLIS,
                     TimeUnit.MILLISECONDS
             );
         }

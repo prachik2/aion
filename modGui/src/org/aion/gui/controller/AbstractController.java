@@ -56,7 +56,10 @@ public abstract class AbstractController implements Initializable {
         };
     }
 
-    protected final <T> void runApiTask(final Task<T> executeAppTask, final EventHandler<WorkerStateEvent> successHandler, final EventHandler<WorkerStateEvent> errorHandler, final EventHandler<WorkerStateEvent> cancelledHandler) {
+    protected final <T> void runApiTask(final Task<T> executeAppTask,
+                                        final EventHandler<WorkerStateEvent> successHandler,
+                                        final EventHandler<WorkerStateEvent> errorHandler,
+                                        final EventHandler<WorkerStateEvent> cancelledHandler) {
         executeAppTask.setOnSucceeded(successHandler);
         executeAppTask.setOnFailed(errorHandler);
         executeAppTask.setOnCancelled(cancelledHandler);

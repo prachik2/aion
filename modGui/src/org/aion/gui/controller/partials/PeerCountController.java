@@ -28,6 +28,7 @@ public class PeerCountController extends AbstractController {
 
     @Override
     protected final void refreshView(final RefreshEvent event) {
+        /*
         if (RefreshEvent.Type.TIMER.equals(event.getType())) {
             final Task<Integer> getPeerCountTask = getApiTask(o -> kernel.getPeerCount(), null);
             runApiTask(
@@ -37,6 +38,7 @@ public class PeerCountController extends AbstractController {
                     getEmptyEvent()
             );
         }
+        */
     }
 
     private void setPeerCount(int numberOfPeers) {

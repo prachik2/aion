@@ -9,4 +9,5 @@ public class RefreshEvent extends AbstractUIEvent{
     public enum Type {
         TIMER, OPERATION_FINISHED
     }
+
 }

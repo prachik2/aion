@@ -1,7 +1,6 @@
 package org.aion.gui.util;
 
-import org.aion.gui.model.dto.SyncInfoDTO;
-import org.aion.gui.model.dto.SyncInfoDTO2;
+import org.aion.gui.model.dto.SyncInfoDto;
 
 public class SyncStatusFormatter {
 
@@ -14,7 +13,7 @@ public class SyncStatusFormatter {
     private static final int MINUTES_IN_AN_HOUR = 60;
     private static final int SYNC_STATUS_DISPLAY_UNIT_LIMIT = 2;
 
-    public static String formatSyncStatus(SyncInfoDTO syncInfo) {
+    public static String formatSyncStatus(SyncInfoDto syncInfo) {
         if(syncInfo != null) {
             if(syncInfo.getNetworkBestBlkNumber() > 0) {
                 long seconds = (syncInfo.getNetworkBestBlkNumber() - syncInfo.getChainBestBlkNumber())
@@ -29,11 +28,8 @@ public class SyncStatusFormatter {
         return UNDEFINED;
     }
 
-    public static String formatSyncStatusByBlockNumbers(SyncInfoDTO syncInfo) {
-        return syncInfo.getChainBestBlkNumber() + "/" + syncInfo.getNetworkBestBlkNumber() + " total blocks";
-    }
 
-    public static String formatSyncStatusByBlockNumbers(SyncInfoDTO2 syncInfo) {
+    public static String formatSyncStatusByBlockNumbers(SyncInfoDto syncInfo) {
         return syncInfo.getChainBestBlkNumber() + "/" + syncInfo.getNetworkBestBlkNumber() + " total blocks";
     }
 

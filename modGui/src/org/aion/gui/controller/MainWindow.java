@@ -127,7 +127,9 @@ public class MainWindow extends Application {
     private FXMLLoader loader() {
         FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
         loader.setControllerFactory(new ControllerFactory()
-                .withKernelConnection(KernelConnection.createDefaultConnection())
+                .withKernelConnection(new KernelConnection(
+                        CfgAion.inst().getApi(),
+                        EventBusRegistry.INSTANCE.getBus(EventBusRegistry.KERNEL_BUS)))
                 .withKernelLauncher(kernelLauncher)
                 .withTimer(timer)
         );

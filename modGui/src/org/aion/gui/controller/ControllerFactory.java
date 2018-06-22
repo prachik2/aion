@@ -7,7 +7,7 @@ import org.aion.gui.controller.partials.SyncStatusController;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.gui.model.GeneralKernelInfoRetriever;
-import org.aion.gui.model.dto.SyncInfoDTO2;
+import org.aion.gui.model.dto.SyncInfoDto;
 import org.aion.os.KernelLauncher;
 import org.slf4j.Logger;
 
@@ -51,7 +51,7 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
                     kernelConnection,
                     kernelUpdateTimer,
                     new GeneralKernelInfoRetriever(kernelConnection),
-                    new SyncInfoDTO2(kernelConnection)
+                    new SyncInfoDto(kernelConnection)
             ));
             put(SettingsController.class, () -> new SettingsController(
                     kernelConnection));

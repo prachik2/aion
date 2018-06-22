@@ -116,16 +116,16 @@ public class HeaderPaneControls extends AbstractController {
 //        EventBusRegistry.getBus(HeaderPaneButtonEvent.ID).post(event);
     }
 
-    @Subscribe
-    private void handleAccountChanged(final AccountDTO account) {
-        accountBalance.setVisible(true);
-        activeAccountLabel.setVisible(true);
-        activeAccount.setText(account.getName());
-        accountAddress = account.getPublicAddress();
-        accountBalance.setText(account.getBalance() + BalanceUtils.CCY_SEPARATOR + account.getCurrency());
-        UIUtils.setWidth(activeAccount);
-        UIUtils.setWidth(accountBalance);
-    }
+//    @Subscribe
+//    private void handleAccountChanged(final AccountDTO account) {
+//        accountBalance.setVisible(true);
+//        activeAccountLabel.setVisible(true);
+//        activeAccount.setText(account.getName());
+//        accountAddress = account.getPublicAddress();
+//        accountBalance.setText(account.getBalance() + BalanceUtils.CCY_SEPARATOR + account.getCurrency());
+//        UIUtils.setWidth(activeAccount);
+//        UIUtils.setWidth(accountBalance);
+//    }
 
     @Override
     protected final void refreshView(final RefreshEvent event) {

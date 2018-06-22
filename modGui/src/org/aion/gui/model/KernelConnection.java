@@ -1,11 +1,15 @@
 package org.aion.gui.model;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.eventbus.EventBus;
 import org.aion.api.IAionAPI;
 import org.aion.api.impl.AionAPIImpl;
 import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
-import org.aion.gui.model.dto.LightAppSettings;
+import org.aion.gui.events.RefreshEvent;
 import org.aion.log.AionLoggerFactory;
+import org.aion.mcf.config.CfgApi;
 import org.slf4j.Logger;
 
 import java.util.concurrent.ExecutorService;
@@ -13,99 +17,112 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
- * Represents a connection to the kernel.
+ * Represents a connection to the kernel; provides interface to connect/disconnect to kernel API
+ * and retricted access to make API calls (see {@link #getApi()} and {@link AbstractAionApiClient}
+ * for details).
  */
 public class KernelConnection {
-    private final ExecutorService backgroundExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService backgroundExecutor;
+    private final CfgApi cfgApi;
+    private final IAionAPI api;
+    private final EventBus eventBus;
 
     private Future<?> connectionFuture;
-
     private Future<?> disconnectionFuture;
-
-    private LightAppSettings lightAppSettings = getLightweightWalletSettings(ApiType.JAVA);
-
-    private final IAionAPI api;
 
     private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
 
     /**
-     * Constructor.  See also {@link #createDefaultConnection()}.
+     * Constructor
      *
-     * @param aionApi API to connect to.
+     * @param cfgApi Configuration
+     * @param eventBus Event bus to which notifications about connection state changes are sent
      */
-    public KernelConnection(IAionAPI aionApi) {
-        this.api = aionApi;
-
-        EventBusRegistry.INSTANCE.getBus(EventPublisher.ACCOUNT_CHANGE_EVENT_ID).register(this);
-        EventBusRegistry.INSTANCE.getBus(EventPublisher.SETTINGS_CHANGED_ID).register(this);
+    public KernelConnection(CfgApi cfgApi,
+                            EventBus eventBus) {
+        this(AionAPIImpl.inst(), cfgApi, eventBus, Executors.newSingleThreadExecutor());
     }
+
 
     /**
-     * Convenient static builder method to construct this class with underlying API instance
-     * {@link AionAPIImpl#inst()}.
+     * Constructor with injectable parameters for testing
      *
-     * This is equivalent to <tt>new KernelConnection(org.aion.api.impl.IAionAPI.inst())</tt>.
-     *
-     * @return a kernel connection connected to {@link AionAPIImpl#inst()}.
+     * @param aionApi
+     * @param cfgApi
+     * @param eventBus
+     * @param executorService
      */
-    public static KernelConnection createDefaultConnection() {
-        return new KernelConnection(AionAPIImpl.inst());
+    @VisibleForTesting KernelConnection(IAionAPI aionApi,
+                                        CfgApi cfgApi,
+                                        EventBus eventBus,
+                                        ExecutorService executorService) {
+        this.api = aionApi;
+        this.cfgApi = cfgApi;
+        this.eventBus = eventBus;
+        this.backgroundExecutor = executorService;
     }
 
+    /** Connect to API */
     public void connect() {
         if (connectionFuture != null) {
             connectionFuture.cancel(true);
         }
         connectionFuture = backgroundExecutor.submit(() -> {
             synchronized (api) {
+                LOG.trace("About to connect to API");
                 api.connect(getConnectionString(), true);
             }
-            EventPublisher.fireOperationFinished();
+            eventBus.post(new RefreshEvent(RefreshEvent.Type.OPERATION_FINISHED));
         });
     }
 
+    /** Disconnect from API. */
     public void disconnect() {
-        connectionFuture.cancel(true);
-        if(!api.isConnected()) {
+        if (!isConnected()) {
             return;
         }
-
-//        storeLightweightWalletSettings(lightAppSettings);
-
+        if(connectionFuture != null) {
+            connectionFuture.cancel(true);
+        }
+        if(disconnectionFuture != null) {
+            disconnectionFuture.cancel(true);
+        }
         disconnectionFuture = backgroundExecutor.submit(() -> {
             synchronized (api) {
+                LOG.trace("About to destroy API");
                 api.destroyApi().getObject();
             }
         });
 
     }
 
-    private String getConnectionString() {
-        final String protocol = lightAppSettings.getProtocol();
-        final String ip = lightAppSettings.getAddress();
-        final String port = lightAppSettings.getPort();
-        return protocol + "://" + ip + ":" + port;
-    }
-
-    protected final LightAppSettings getLightweightWalletSettings(final ApiType type){
-        return new LightAppSettings("127.0.0.1", "8547", "tcp", ApiType.JAVA);
-    }
-
-    public LightAppSettings getSettings() {
-        return lightAppSettings;
-    }
-
     /**
-     * Should only be used by AbstractAionApiClient
+     * @return whether API is connected
      */
-    IAionAPI getApi() {
-        return this.api;
-    }
-
     public boolean isConnected() {
         synchronized (api) {
             return api.isConnected();
         }
     }
 
+    /**
+     * Intended to only be used by AbstractAionApiClient.
+     *
+     * @return api that the kernel is connected to
+     */
+    @VisibleForTesting IAionAPI getApi() {
+        // Impl note: Can make this public if there's a good reason for other classes
+        // to call this in the future.  Because of the non-thread-safe nature of API,
+        // currently it is restricted and the recommended way to call the API is to subclass
+        // from AbstractAionApiClient which provides subclasses with synchronized blocks to
+        // call their critical sections with.
+        return this.api;
+    }
+
+    private String getConnectionString() {
+        final String protocol = "tcp";
+        final String ip = Preconditions.checkNotNull(cfgApi.getZmq().getIp());
+        final String port = Preconditions.checkNotNull(String.valueOf(cfgApi.getZmq().getPort()));
+        return protocol + "://" + ip + ":" + port;
+    }
 }

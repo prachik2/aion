@@ -1,7 +1,6 @@
 package org.aion.gui.events;
 
 import org.aion.gui.model.dto.AccountDTO;
-import org.aion.gui.model.dto.LightAppSettings;
 import org.aion.gui.util.DataUpdater;
 import org.aion.log.AionLoggerFactory;
 import org.slf4j.Logger;
@@ -15,7 +14,7 @@ public class EventPublisher {
 
     public static void fireAccountChanged(final AccountDTO account) {
         if (account != null) {
-            EventBusRegistry.INSTANCE.INSTANCE.getBus(ACCOUNT_CHANGE_EVENT_ID).post(account);
+            EventBusRegistry.INSTANCE.getBus(ACCOUNT_CHANGE_EVENT_ID).post(account);
         }
     }
 
@@ -30,7 +29,7 @@ public class EventPublisher {
         EventBusRegistry.INSTANCE.getBus(DataUpdater.UI_DATA_REFRESH).post(new RefreshEvent(RefreshEvent.Type.OPERATION_FINISHED));
     }
 
-    public static void fireApplicationSettingsChanged(final LightAppSettings settings){
-        EventBusRegistry.INSTANCE.getBus(SETTINGS_CHANGED_ID).post(settings);
-    }
+//    public static void fireApplicationSettingsChanged(final LightAppSettings settings){
+//        EventBusRegistry.INSTANCE.getBus(SETTINGS_CHANGED_ID).post(settings);
+//    }
 }

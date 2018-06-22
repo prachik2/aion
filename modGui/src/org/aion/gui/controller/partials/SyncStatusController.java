@@ -1,12 +1,11 @@
 package org.aion.gui.controller.partials;
 
-import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import org.aion.gui.controller.AbstractController;
-import org.aion.gui.model.KernelConnection;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.gui.model.dto.SyncInfoDTO;
+import org.aion.gui.model.KernelConnection;
+import org.aion.gui.model.dto.SyncInfoDto;
 import org.aion.gui.util.SyncStatusFormatter;
 
 import java.net.URL;
@@ -32,7 +31,7 @@ public class SyncStatusController extends AbstractController {
         // FIXME put me back
 
 //        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
-//            final Task<SyncInfoDTO> getSyncInfoTask = getApiTask(o -> kernel.getSyncInfo(), null);
+//            final Task<SyncInfoDto> getSyncInfoTask = getApiTask(o -> kernel.getSyncInfo(), null);
 //            runApiTask(
 //                    getSyncInfoTask,
 //                    evt -> setSyncStatus(getSyncInfoTask.getValue()),
@@ -42,7 +41,7 @@ public class SyncStatusController extends AbstractController {
 //        }
     }
 
-    private void setSyncStatus(SyncInfoDTO syncInfo) {
+    private void setSyncStatus(SyncInfoDto syncInfo) {
         progressBarLabel.setText(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfo));
     }
 }

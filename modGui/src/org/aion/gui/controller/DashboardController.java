@@ -14,7 +14,7 @@ import org.aion.gui.model.GeneralKernelInfoRetriever;
 import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
-import org.aion.gui.model.dto.SyncInfoDTO2;
+import org.aion.gui.model.dto.SyncInfoDto;
 import org.aion.gui.util.DataUpdater;
 import org.aion.gui.util.SyncStatusFormatter;
 import org.aion.log.AionLoggerFactory;
@@ -31,7 +31,7 @@ public class DashboardController extends AbstractController {
     private final KernelUpdateTimer kernelUpdateTimer;
 
     private final GeneralKernelInfoRetriever generalKernelInfoRetriever;
-    private final SyncInfoDTO2 syncInfoDTO2;
+    private final SyncInfoDto syncInfoDTO;
 
     @FXML private Button launchKernelButton;
     @FXML private Button terminateKernelButton;
@@ -49,12 +49,12 @@ public class DashboardController extends AbstractController {
                                KernelConnection kernelConnection,
                                KernelUpdateTimer kernelUpdateTimer,
                                GeneralKernelInfoRetriever generalKernelInfoRetriever,
-                               SyncInfoDTO2 syncInfoDTO2) {
+                               SyncInfoDto syncInfoDTO) {
         this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
         this.kernelUpdateTimer = kernelUpdateTimer;
         this.generalKernelInfoRetriever = generalKernelInfoRetriever;
-        this.syncInfoDTO2 = syncInfoDTO2;
+        this.syncInfoDTO = syncInfoDTO;
     }
 
     @Override
@@ -88,26 +88,26 @@ public class DashboardController extends AbstractController {
         LOG.trace("handleUiTimerTick");
 //        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
         // peer count
-        final Task<Optional<Integer>> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
+        final Task<Integer> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
         runApiTask(
                 getPeerCountTask,
-                evt -> numPeersLabel.setText(displayStringOfOptional(getPeerCountTask.getValue())),
+                evt -> numPeersLabel.setText(String.valueOf(getPeerCountTask.getValue())),
                 getErrorEvent(throwable -> {}, getPeerCountTask),
                 getEmptyEvent()
         );
         // sync status
-        Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO2.loadFromApi(), null);
+        Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO.loadFromApi(), null);
         runApiTask(
                 getSyncInfoTask,
-                evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO2))),
+                evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO))),
                 getErrorEvent(throwable -> {}, getSyncInfoTask),
                 getEmptyEvent()
         );
         // mining status
-        Task<Optional<Boolean>> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
+        Task<Boolean> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
         runApiTask(
                 getMiningStatusTask,
-                evt -> isMining.setText(displayStringOfOptional(getMiningStatusTask.getValue())),
+                evt -> isMining.setText(String.valueOf(getMiningStatusTask.getValue())),
                 getErrorEvent(throwable -> {}, getSyncInfoTask),
                 getEmptyEvent()
         );

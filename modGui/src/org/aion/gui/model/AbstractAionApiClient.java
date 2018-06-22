@@ -2,6 +2,8 @@ package org.aion.gui.model;
 
 import org.aion.api.IAionAPI;
 import org.aion.api.type.ApiMsg;
+import org.aion.log.AionLoggerFactory;
+import org.slf4j.Logger;
 
 /**
  * Provides access to an {@link IAionAPI} instance in a thread-safe manner.
@@ -10,6 +12,8 @@ import org.aion.api.type.ApiMsg;
  */
 public abstract class AbstractAionApiClient {
     private final IAionAPI api;
+
+    private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
 
     /**
      * Constructor
@@ -39,10 +43,18 @@ public abstract class AbstractAionApiClient {
         }
     }
 
-    protected String logStringForErrorApiMsg(ApiMsg msg) {
-        return String.format("Error in API call.  Code = %s.  Error = %s.",
-                msg.getErrorCode(), msg.getErrString());
+    /**
+     * Log and throw if msg is in error state.  Otherwise, do nothing.
+     *
+     * @param msg msg
+     * @throws ApiDataRetrievalException
+     */
+    protected void throwAndLogIfError(ApiMsg msg) throws ApiDataRetrievalException {
+        if(msg.isError()) {
+            String log = String.format("Error in API call.  Code = %s.  Error = %s.",
+                    msg.getErrorCode(), msg.getErrString());
+            LOG.error(log);
+            throw new ApiDataRetrievalException(log, msg);
+        }
     }
-
-
 }

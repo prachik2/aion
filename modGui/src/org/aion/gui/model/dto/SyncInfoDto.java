@@ -1,28 +1,24 @@
 package org.aion.gui.model.dto;
 
-import org.aion.api.IAionAPI;
 import org.aion.api.type.ApiMsg;
 import org.aion.api.type.SyncInfo;
-import org.aion.gui.model.AbstractAionApiClient;
+import org.aion.gui.model.ApiDataRetrievalException;
 import org.aion.gui.model.KernelConnection;
 import org.aion.log.AionLoggerFactory;
 import org.slf4j.Logger;
 
-import java.util.Optional;
-
-public class SyncInfoDTO2 extends AbstractAionApiClient {
+public class SyncInfoDto extends AbstractDto {
     private long chainBestBlkNumber;
     private long networkBestBlkNumber;
 
     private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
-
 
     /**
      * Constructor
      *
      * @param kernelConnection connection containing the API instance to interact with
      */
-    public SyncInfoDTO2(KernelConnection kernelConnection) {
+    public SyncInfoDto(KernelConnection kernelConnection) {
         super(kernelConnection);
     }
 
@@ -43,42 +39,32 @@ public class SyncInfoDTO2 extends AbstractAionApiClient {
     }
 
 
-    public Void loadFromApi() {
+    public void loadFromApiInternal() throws ApiDataRetrievalException  {
         Long chainBest;
         long netBest;
         SyncInfo syncInfo;
         try {
             ApiMsg msg = callApi(api -> api.getNet().syncInfo());
-            if(msg.isError()) {
-                LOG.error(logStringForErrorApiMsg(msg));
-                return null;
-            }
+            throwAndLogIfError(msg);
             syncInfo = msg.getObject();
             chainBest = syncInfo.getChainBestBlock();
             netBest = syncInfo.getNetworkBestBlock();
         } catch (Exception e) {
-            chainBest = getLatest(); // FIXME more intelligent null handling
+            chainBest = getLatest();
             if(chainBest == null) {
                 chainBest = 0l;
             }
             netBest = chainBest;
         }
 
-        setChainBestBlkNumber(chainBest);
+        setChainBestBlkNumber(
+        );
         setNetworkBestBlkNumber(netBest);
-
-        return null;
     }
 
-    private Long getLatest() {
-        final Long latest;
-
+    private Long getLatest() throws ApiDataRetrievalException {
         ApiMsg msg = callApi(api -> api.getChain().blockNumber());
-        if(msg.isError()) {
-            logStringForErrorApiMsg(msg);
-            return null;
-        }
-
+        throwAndLogIfError(msg);
         return msg.getObject();
     }
 }

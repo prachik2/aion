@@ -30,14 +30,14 @@ public class SettingsController extends AbstractController {
     @FXML
     public Label notification;
 
-    private LightAppSettings settings;
+//    private LightAppSettings settings;
 
     public SettingsController(KernelConnection kernelConnection) {
         this.kernel = kernelConnection;
 
         /* FIXME probably not the right place for this */
         /* */
-        this.settings = new LightAppSettings("127.0.0.1", "8547", "tcp", ApiType.JAVA);
+//        this.settings = new LightAppSettings("127.0.0.1", "8547", "tcp", ApiType.JAVA);
     }
 
     @Override
@@ -51,24 +51,26 @@ public class SettingsController extends AbstractController {
     }
 
     public void changeSettings() {
-        EventPublisher.fireApplicationSettingsChanged(new LightAppSettings(address.getText().trim(), port.getText().trim(),
+        /*EventPublisher.fireApplicationSettingsChanged(new LightAppSettings(address.getText().trim(), port.getText().trim(),
                 protocol.getText().trim(), settings.getType()));
         notification.setText("Changes applied");
-
+*/
     }
 
     @Subscribe
     private void handleHeaderPaneButtonEvent(final HeaderPaneButtonEvent event) {
+        /*
         if (event.getType().equals(HeaderPaneButtonEvent.Type.SETTINGS)) {
             reloadView();
         }
+        */
     }
 
     private void reloadView() {
-        settings = kernel.getSettings();
+       /* settings = kernel.getSettings();
         protocol.setText(settings.getProtocol());
         address.setText(settings.getAddress());
         port.setText(settings.getPort());
-        notification.setText("");
+        notification.setText("");*/
     }
 }

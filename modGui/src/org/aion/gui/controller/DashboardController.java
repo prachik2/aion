@@ -114,14 +114,6 @@ public class DashboardController extends AbstractController {
 //        }
     }
 
-    private String displayStringOfOptional(Optional<?> opt) {
-        if(!opt.isPresent()) {
-            return "<unknown>";
-        } else {
-            return String.valueOf(opt.get());
-        }
-    }
-
     @Subscribe
     private void handleKernelLaunched(final KernelProcEvent.KernelLaunchedEvent ev) {
         LOG.trace("handleKernelLaunched");

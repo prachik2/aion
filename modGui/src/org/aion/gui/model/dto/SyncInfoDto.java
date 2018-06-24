@@ -51,20 +51,20 @@ public class SyncInfoDto extends AbstractDto {
             netBest = syncInfo.getNetworkBestBlock();
         } catch (Exception e) {
             chainBest = getLatest();
-            if(chainBest == null) {
-                chainBest = 0l;
-            }
             netBest = chainBest;
         }
 
-        setChainBestBlkNumber(
-        );
+        setChainBestBlkNumber(chainBest);
         setNetworkBestBlkNumber(netBest);
     }
 
     private Long getLatest() throws ApiDataRetrievalException {
-        ApiMsg msg = callApi(api -> api.getChain().blockNumber());
-        throwAndLogIfError(msg);
-        return msg.getObject();
+        if(!apiIsConnected()) {
+            return 0l;
+        } else {
+            ApiMsg msg = callApi(api -> api.getChain().blockNumber());
+            throwAndLogIfError(msg);
+            return msg.getObject();
+        }
     }
 }

@@ -5,8 +5,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.eventbus.EventBus;
 import org.aion.api.IAionAPI;
 import org.aion.api.impl.AionAPIImpl;
-import org.aion.gui.events.EventBusRegistry;
-import org.aion.gui.events.EventPublisher;
+import org.aion.api.type.ApiMsg;
 import org.aion.gui.events.RefreshEvent;
 import org.aion.log.AionLoggerFactory;
 import org.aion.mcf.config.CfgApi;
@@ -70,9 +69,13 @@ public class KernelConnection {
         connectionFuture = backgroundExecutor.submit(() -> {
             synchronized (api) {
                 LOG.trace("About to connect to API");
-                api.connect(getConnectionString(), true);
+                ApiMsg msg =  api.connect(getConnectionString(), true);
+                if(msg.isError()) {
+
+                } else {
+                    eventBus.post(new RefreshEvent(RefreshEvent.Type.OPERATION_FINISHED));
+                }
             }
-            eventBus.post(new RefreshEvent(RefreshEvent.Type.OPERATION_FINISHED));
         });
     }
 

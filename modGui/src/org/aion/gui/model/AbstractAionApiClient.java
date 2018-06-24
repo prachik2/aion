@@ -57,4 +57,11 @@ public abstract class AbstractAionApiClient {
             throw new ApiDataRetrievalException(log, msg);
         }
     }
+
+    /**
+     * @return whether API is connected
+     */
+    protected boolean apiIsConnected() {
+        return api.isConnected();
+    }
 }

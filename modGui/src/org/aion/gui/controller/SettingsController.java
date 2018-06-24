@@ -4,13 +4,10 @@ import com.google.common.eventbus.Subscribe;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import org.aion.gui.events.EventBusRegistry;
+import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.model.KernelConnection;
 import org.aion.log.AionLoggerFactory;
-import org.aion.gui.model.dto.LightAppSettings;
-import org.aion.gui.model.ApiType;
-import org.aion.gui.events.EventBusRegistry;
-import org.aion.gui.events.EventPublisher;
-import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.slf4j.Logger;
 
 import java.net.URL;

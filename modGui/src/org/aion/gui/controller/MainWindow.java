@@ -162,7 +162,7 @@ public class MainWindow extends Application {
         stage.setY(event.getScreenY() - yOffset);
     }
 
-    private void shutDown() {
+    public void shutDown() {
         LOG.info("Shutting down.");
         Platform.exit();
         //BlockchainConnector.getInstance().close();
@@ -205,5 +205,9 @@ public class MainWindow extends Application {
 
     private void minimize(final WindowControlsEvent event) {
         ((Stage) event.getSource().getScene().getWindow()).setIconified(true);
+    }
+
+    public Scene getScene() {
+        return stage.getScene();
     }
 }

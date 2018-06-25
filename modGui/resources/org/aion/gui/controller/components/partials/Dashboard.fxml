@@ -32,13 +32,12 @@
         <Label text="Dashboard" styleClass="tile-label" alignment="CENTER"/>
     </VBox>
 
-    <!-- TODO: Make it so launch/terminate is just one button depending on current state -->
-    <Button fx:id="launchKernelButton"
+    <Button fx:id="launchKernelButton" id="launchKernelButton"
         GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="1"
         AnchorPane.topAnchor="50" AnchorPane.leftAnchor="10" 
         mnemonicParsing="false" text="Launch kernel" 
         onMouseClicked="#launchKernel"/>
-    <Button fx:id="terminateKernelButton"
+    <Button fx:id="terminateKernelButton" id="terminateKernelButton"
         GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.columnSpan="1"
         AnchorPane.topAnchor="50" AnchorPane.leftAnchor="10" 
         mnemonicParsing="false" text="Terminate kernel" 

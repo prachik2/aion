@@ -1,5 +1,7 @@
 package org.aion.gui.controller;
 
+import javafx.util.Builder;
+import javafx.util.BuilderFactory;
 import javafx.util.Callback;
 import org.aion.gui.controller.partials.ConnectivityStatusController;
 import org.aion.gui.controller.partials.PeerCountController;
@@ -31,12 +33,14 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
     private KernelConnection kernelConnection;
     private KernelLauncher kernelLauncher;
     private KernelUpdateTimer kernelUpdateTimer;
+    private GeneralKernelInfoRetriever generalKernelInfoRetriever;
+    private SyncInfoDto syncInfoDto;
 
     private static final Logger LOG = org.aion.log.AionLoggerFactory
             .getLogger(org.aion.log.LogEnum.GUI.name());
 
     @FunctionalInterface
-    private interface BuildMethod {
+    protected interface BuildMethod {
         AbstractController build();
     }
 
@@ -50,8 +54,8 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
                     kernelLauncher,
                     kernelConnection,
                     kernelUpdateTimer,
-                    new GeneralKernelInfoRetriever(kernelConnection),
-                    new SyncInfoDto(kernelConnection)
+                    generalKernelInfoRetriever,
+                    syncInfoDto
             ));
             put(SettingsController.class, () -> new SettingsController(
                     kernelConnection));
@@ -96,6 +100,10 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
                                 clazz.toString()), ex);
             }
         }
+    }
+
+    public BuildMethod getBuildMethod(Class<?> clazz) {
+        return builderChooser.get(clazz);
     }
 
     /**
@@ -144,5 +152,37 @@ public class ControllerFactory implements Callback<Class<?>, Object> {
      */
     public KernelUpdateTimer getTimer() {
         return kernelUpdateTimer;
+    }
+
+    /**
+     * @param generalKernelInfoRetriever sets the generalKernelInfoRetriever used by this factory
+     * @return this
+     */
+    public ControllerFactory withGeneralKernelInfoRetriever(GeneralKernelInfoRetriever generalKernelInfoRetriever) {
+        this.generalKernelInfoRetriever = generalKernelInfoRetriever;
+        return this;
+    }
+
+    /**
+     * @return the generalKernelInfoRetriever used by this factory
+     */
+    public GeneralKernelInfoRetriever getGeneralKernelInfoRetriever() {
+        return generalKernelInfoRetriever;
+    }
+
+    /**
+     * @param syncInfoDto sets the SyncInfoDto used by this factory
+     * @return this
+     */
+    public ControllerFactory withSyncInfoDto(SyncInfoDto syncInfoDto) {
+        this.syncInfoDto = syncInfoDto;
+        return this;
+    }
+
+    /**
+     * @return the SyncInfoDto used by this factory
+     */
+    public SyncInfoDto getSyncInfoDto() {
+        return syncInfoDto;
     }
 }

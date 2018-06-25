@@ -1,6 +1,7 @@
 package org.aion.gui.controller;
 
 import com.google.common.eventbus.Subscribe;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -42,7 +43,6 @@ public class DashboardController extends AbstractController {
     @FXML private Label isMining;
     @FXML private Label blocksLabel;
 
-
     private static final Logger LOG = AionLoggerFactory.getLogger(org.aion.log.LogEnum.GUI.name());
 
     public DashboardController(KernelLauncher kernelLauncher,
@@ -50,8 +50,8 @@ public class DashboardController extends AbstractController {
                                KernelUpdateTimer kernelUpdateTimer,
                                GeneralKernelInfoRetriever generalKernelInfoRetriever,
                                SyncInfoDto syncInfoDTO) {
-        this.kernelLauncher = kernelLauncher;
         this.kernelConnection = kernelConnection;
+        this.kernelLauncher = kernelLauncher;
         this.kernelUpdateTimer = kernelUpdateTimer;
         this.generalKernelInfoRetriever = generalKernelInfoRetriever;
         this.syncInfoDTO = syncInfoDTO;
@@ -63,6 +63,7 @@ public class DashboardController extends AbstractController {
 
     @Override
     protected void registerEventBusConsumer() {
+        // TODO: Make injectable
         EventBusRegistry.INSTANCE.getBus(EventBusRegistry.KERNEL_BUS).register(this);
         EventBusRegistry.INSTANCE.getBus(DataUpdater.UI_DATA_REFRESH).register(this);
     }
@@ -84,14 +85,13 @@ public class DashboardController extends AbstractController {
     }
 
     @Subscribe
-     void handleUiTimerTick(RefreshEvent event) {
-        LOG.trace("handleUiTimerTick");
-//        if (RefreshEvent.Type.TIMER.equals(event.getType())) {
+    private void handleUiTimerTick(RefreshEvent event) {
+        LOG.trace("DashboardController#handleUiTimerTick");
         // peer count
         final Task<Integer> getPeerCountTask = getApiTask(o -> generalKernelInfoRetriever.getPeerCount(), null);
         runApiTask(
                 getPeerCountTask,
-                evt -> numPeersLabel.setText(String.valueOf(getPeerCountTask.getValue())),
+                evt -> Platform.runLater(() -> numPeersLabel.setText(String.valueOf(getPeerCountTask.getValue()))),
                 getErrorEvent(throwable -> {}, getPeerCountTask),
                 getEmptyEvent()
         );
@@ -99,7 +99,7 @@ public class DashboardController extends AbstractController {
         Task<Void> getSyncInfoTask = getApiTask(o -> syncInfoDTO.loadFromApi(), null);
         runApiTask(
                 getSyncInfoTask,
-                evt -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO))),
+                evt -> Platform.runLater(() -> blocksLabel.setText(String.valueOf(SyncStatusFormatter.formatSyncStatusByBlockNumbers(syncInfoDTO)))),
                 getErrorEvent(throwable -> {}, getSyncInfoTask),
                 getEmptyEvent()
         );
@@ -107,28 +107,33 @@ public class DashboardController extends AbstractController {
         Task<Boolean> getMiningStatusTask = getApiTask(o -> generalKernelInfoRetriever.isMining(), null);
         runApiTask(
                 getMiningStatusTask,
-                evt -> isMining.setText(String.valueOf(getMiningStatusTask.getValue())),
+                evt -> Platform.runLater(() -> isMining.setText(String.valueOf(getMiningStatusTask.getValue()))),
                 getErrorEvent(throwable -> {}, getSyncInfoTask),
                 getEmptyEvent()
         );
-//        }
     }
 
     @Subscribe
     private void handleKernelLaunched(final KernelProcEvent.KernelLaunchedEvent ev) {
         LOG.trace("handleKernelLaunched");
         kernelConnection.connect(); // TODO: what if we launched the process but can't connect?
-        kernelStatusLabel.setText("Running");
-        kernelUpdateTimer.start(); // should actually wait until connect() happens
-        enableTerminateButton();
+        kernelUpdateTimer.start();
+        Platform.runLater( () -> {
+            kernelStatusLabel.setText("Running");
+            enableTerminateButton();
+        });
+
     }
 
     @Subscribe
     private void handleKernelTerminated(final KernelProcEvent.KernelTerminatedEvent ev) {
-        enableLaunchButton();
-        numPeersLabel.setText("--");
-        blocksLabel.setText("--");
-        isMining.setText("--");
+        Platform.runLater( () -> {
+            enableLaunchButton();
+            kernelStatusLabel.setText("Not running");
+            numPeersLabel.setText("--");
+            blocksLabel.setText("--");
+            isMining.setText("--");
+        });
     }
 
     // -- Handlers for View components ------------------------------------------------------------
@@ -153,7 +158,6 @@ public class DashboardController extends AbstractController {
                 kernelUpdateTimer.stop();
                 kernelConnection.disconnect();
                 kernelLauncher.terminate();
-                kernelStatusLabel.setText("Not running");
             }
         } catch (RuntimeException ex) {
             LOG.error("Termination error", ex);

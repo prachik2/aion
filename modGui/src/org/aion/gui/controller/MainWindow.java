@@ -15,8 +15,10 @@ import javafx.stage.StageStyle;
 import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.WindowControlsEvent;
+import org.aion.gui.model.GeneralKernelInfoRetriever;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
+import org.aion.gui.model.dto.SyncInfoDto;
 import org.aion.log.AionLoggerFactory;
 import org.aion.log.LogEnum;
 import org.aion.mcf.config.CfgGuiLauncher;
@@ -125,13 +127,16 @@ public class MainWindow extends Application {
     }
 
     private FXMLLoader loader() {
+        KernelConnection kc = new KernelConnection(
+                CfgAion.inst().getApi(),
+                EventBusRegistry.INSTANCE.getBus(EventBusRegistry.KERNEL_BUS));
         FXMLLoader loader = new FXMLLoader((getClass().getResource(MAIN_WINDOW_FXML)));
         loader.setControllerFactory(new ControllerFactory()
-                .withKernelConnection(new KernelConnection(
-                        CfgAion.inst().getApi(),
-                        EventBusRegistry.INSTANCE.getBus(EventBusRegistry.KERNEL_BUS)))
+                .withKernelConnection(kc)
                 .withKernelLauncher(kernelLauncher)
                 .withTimer(timer)
+                .withGeneralKernelInfoRetriever(new GeneralKernelInfoRetriever(kc))
+                .withSyncInfoDto(new SyncInfoDto(kc))
         );
         return loader;
     }

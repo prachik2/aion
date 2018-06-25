@@ -71,7 +71,11 @@ public class KernelConnection {
                 LOG.trace("About to connect to API");
                 ApiMsg msg =  api.connect(getConnectionString(), true);
                 if(msg.isError()) {
-
+                    // since api.connect called with reconnect = true, it should
+                    // block until msg is not error so this shouldn't happen, but
+                    // log if it does.
+                    LOG.error("Error connecting to Api.  ErrorCode = {}.  ErrString = {}",
+                            msg.getErrorCode(), msg.getErrString());
                 } else {
                     eventBus.post(new RefreshEvent(RefreshEvent.Type.OPERATION_FINISHED));
                 }

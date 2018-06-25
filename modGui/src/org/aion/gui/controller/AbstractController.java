@@ -1,5 +1,6 @@
 package org.aion.gui.controller;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.eventbus.Subscribe;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
@@ -29,6 +30,7 @@ public abstract class AbstractController implements Initializable {
     private Node parent;
 
     private final static ExecutorService API_EXECUTOR = Executors.newSingleThreadExecutor();
+
 
     @Override
     public final void initialize(final URL location, final ResourceBundle resources) {
@@ -90,4 +92,8 @@ public abstract class AbstractController implements Initializable {
     }
 
     protected abstract void internalInit(final URL location, final ResourceBundle resources);
+
+    @VisibleForTesting ExecutorService getExecutor() {
+        return API_EXECUTOR;
+    }
 }

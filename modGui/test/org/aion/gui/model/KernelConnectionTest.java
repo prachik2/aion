@@ -3,6 +3,7 @@ package org.aion.gui.model;
 import com.google.common.eventbus.EventBus;
 import com.google.common.io.CharSource;
 import org.aion.api.IAionAPI;
+import org.aion.api.type.ApiMsg;
 import org.aion.api.type.Event;
 import org.aion.gui.events.AbstractUIEvent;
 import org.aion.gui.events.EventBusRegistry;
@@ -20,8 +21,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.aion.gui.events.RefreshEvent.Type.OPERATION_FINISHED;
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -34,7 +38,7 @@ public class KernelConnectionTest {
     private ExecutorService executorService;
     private KernelConnection unit;
 
-    private final static int EXECUTOR_SERVICE_TIMEOUT_SEC = 4;
+    private final static int EXECUTOR_SERVICE_TIMEOUT_SEC = 2;
 
     @Before
     public void before() throws Exception {
@@ -55,6 +59,9 @@ public class KernelConnectionTest {
     public void testConnect() {
         boolean expectedReconnect = true;
         String expectedConnectionString = "tcp://someIpAddress:12345";
+        ApiMsg msg = mock(ApiMsg.class);
+        when(api.connect(anyString(), anyBoolean())).thenReturn(msg);
+        when(msg.isError()).thenReturn(false);
         unit.connect();
         try {
             executorService.awaitTermination(EXECUTOR_SERVICE_TIMEOUT_SEC, TimeUnit.SECONDS);

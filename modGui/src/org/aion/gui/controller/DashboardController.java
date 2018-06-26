@@ -12,7 +12,6 @@ import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.KernelProcEvent;
 import org.aion.gui.events.RefreshEvent;
 import org.aion.gui.model.GeneralKernelInfoRetriever;
-import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.model.KernelConnection;
 import org.aion.gui.model.KernelUpdateTimer;
 import org.aion.gui.model.dto.SyncInfoDto;
@@ -23,7 +22,6 @@ import org.aion.os.KernelLauncher;
 import org.slf4j.Logger;
 
 import java.net.URL;
-import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class DashboardController extends AbstractController {
@@ -69,10 +67,10 @@ public class DashboardController extends AbstractController {
     }
 
     // -- Handlers for Events coming from Model ---------------------------------------------------
-    @Subscribe
-    private void handleAccountChanged(final AccountDTO account) {
-        LOG.warn("Implement me!");
-    }
+//    @Subscribe
+//    private void handleAccountChanged(final AccountDTO account) {
+//        LOG.warn("Implement me!");
+//    }
 
     @Subscribe
     private void handleHeaderPaneButtonEvent(final HeaderPaneButtonEvent event) {

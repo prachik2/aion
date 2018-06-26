@@ -6,10 +6,10 @@
             stylesheets="@footer-pane.css" styleClass="anchor-pane"
             AnchorPane.topAnchor="520" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" prefWidth="500">
 
-        <fx:include source="partials/ConnectivityStatus.fxml"/>
+        <!--<fx:include source="partials/ConnectivityStatus.fxml"/>
         <fx:include source="partials/PeerCount.fxml"/>
-        <fx:include source="partials/SyncStatus.fxml"/>
-        <Label AnchorPane.topAnchor="10" AnchorPane.leftAnchor="655" styleClass="footer-pane-text" text="AION Desktop Wallet v1.0"/>
+        <fx:include source="partials/SyncStatus.fxml"/>-->
+        <Label AnchorPane.topAnchor="10" AnchorPane.leftAnchor="655" styleClass="footer-pane-text" text="AION Kernel UI v0.1"/>
 
 
 </AnchorPane>

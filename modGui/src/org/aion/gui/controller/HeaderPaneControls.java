@@ -1,6 +1,5 @@
 package org.aion.gui.controller;
 
-import com.google.common.eventbus.Subscribe;
 import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.fxml.FXML;
@@ -14,7 +13,6 @@ import org.aion.gui.events.EventBusRegistry;
 import org.aion.gui.events.EventPublisher;
 import org.aion.gui.events.HeaderPaneButtonEvent;
 import org.aion.gui.events.RefreshEvent;
-import org.aion.gui.model.dto.AccountDTO;
 import org.aion.gui.util.BalanceUtils;
 import org.aion.gui.util.UIUtils;
 import org.aion.log.AionLoggerFactory;

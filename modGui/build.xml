@@ -77,8 +77,16 @@
     </target>
 
     <target name="integtest" depends="integtest_build" >
+        <echo message="user.dir = ${user.dir}" />
+        <echo message="basedir = ${basedir}" />
         <mkdir dir="${test.report.dir}"/>
         <junit printsummary="on" haltonfailure="yes" fork="yes">
+
+            <!-- hack to make KernelLauncher use the correct path regardless of 
+                 whether ant invoked from aion dir or aion/modGui.  The proper
+                 fix is to make KernelLauncher work regardless of what pwd is.  -->
+            <jvmarg value="-Duser.dir=${basedir}" />
+
             <sysproperty key="testfx.robot" value="glass" />
             <sysproperty key="testfx.headless" value="true" />
             <sysproperty key="prism.order" value="sw" />

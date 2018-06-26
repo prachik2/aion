@@ -138,7 +138,6 @@ public class DashboardControllerIntegTest extends ApplicationTest {
             fail("Api call took too long.");
         }
         WaitForAsyncUtils.waitForFxEvents();
-        Thread.sleep(1000l);
         verifyThat("#numPeersLabel", LabeledMatchers.hasText(String.valueOf(peerCount)));
         verifyThat("#blocksLabel", LabeledMatchers.hasText("1337/5781 total blocks"));
         verifyThat("#isMining", LabeledMatchers.hasText(String.valueOf(isMining)));

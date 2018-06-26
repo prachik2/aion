@@ -26,6 +26,9 @@ import static org.junit.Assert.*;
 public class KernelLauncherIntegTest {
     private List<Long> cleanupPids;
 
+    private static final long POLL_TERMINATION_INTERVAL_MILLIS = 3000;
+    private static final long POLL_TERMINATION_MAX_MILLIS = 300_000;
+
     @Before
     public void before() {
         cleanupPids = new LinkedList<>();
@@ -101,9 +104,6 @@ public class KernelLauncherIntegTest {
         assertThat("Expected PID that was launched to no longer be running after KernelLauncher#terminate",
                 terminated, is(true));
     }
-
-    private long POLL_TERMINATION_INTERVAL_MILLIS = 3000;
-    private long POLL_TERMINATION_MAX_MILLIS = 300_000;
 
     private List<Long> pgrep(String pattern) throws IOException, InterruptedException {
         String maybeUser = System.getProperty("user.name");

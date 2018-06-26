@@ -20,7 +20,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Optional;
 
-/** Facilitates launching an instance of the Kernel. */
+/** Facilitates launching an instance of the Kernel and managing the launched instance. */
 public class KernelLauncher {
     private final CfgGuiLauncher config;
     private final KernelLaunchConfigurator kernelLaunchConfigurator;
@@ -59,10 +59,12 @@ public class KernelLauncher {
 
     /**
      * Launch a separate JVM in a new OS process and within it, run the Aion kernel.  PID of process
-     * is persisted to disk.
+     * is persisted to disk.  The process is started as a background process (i.e. this method will
+     * not block waiting for the Aion kernel process to end)
      *
-     * @return if successful, a {@link Optional<Process>} whose value is the Process of the aion.sh
-     *         wrapper script; otherwise, {@link Optional#empty()}.
+     * @return if successful, a {@link Process} whose value is the Process of the nohup_wrapper.sh
+     *         script used to then call the aion.sh script
+     * @throws KernelControlException if process could not be launched
      */
     public Process launch() throws KernelControlException {
         ProcessBuilder processBuilder = new ProcessBuilder();

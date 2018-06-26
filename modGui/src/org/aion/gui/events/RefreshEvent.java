@@ -1,6 +1,6 @@
 package org.aion.gui.events;
 
-public class RefreshEvent extends AbstractUIEvent{
+public class RefreshEvent extends AbstractUIEvent<Enum>{
 
     public RefreshEvent(Enum eventType) {
         super(eventType);
